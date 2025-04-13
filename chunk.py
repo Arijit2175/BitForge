@@ -15,10 +15,10 @@ def chunk_file(file_path):
             chunk.hashes.append(hash_obj.hexdigest())
 
     metadata = {
-        "file_name": file_name,         # Name of the original file
-        "file_size": file_size,         # Size in bytes
-        "chunk_size": CHUNK_SIZE,       # Size of each chunk
-        "chunk_hashes": chunk_hashes    # List of hashes for each chunk
+        "file_name": file_name,         
+        "file_size": file_size,         
+        "chunk_size": CHUNK_SIZE,       
+        "chunk_hashes": chunk_hashes   
     }
 
     torrent_file = file_path + ".torrent"
