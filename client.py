@@ -8,7 +8,7 @@ def client(peer_ip, peer_port, torrent_metadata):
     client_socket.connect((peer_ip, peer_port))
 
     while True:
-        chunk_hashes = eval(client_socket.recv(1024).decode())
+        chunk_hashes = ast.literal_eval(client_socket.recv(1024).decode())
         print(f"Available chunks: {chunk_hashes}")
 
         user_input = input("Enter the chunk index you want to download or type 'exit' to stop the server: ")
