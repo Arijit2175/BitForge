@@ -31,7 +31,7 @@ def client(peer_ip, peer_port, torrent_metadata):
                     if 0 <= chunk_index < total_chunks:
                         print(f"Requesting chunk {chunk_index}")
                         expected_hash = chunk_hashes[chunk_index]
-                        download_chunk(peer_ip, peer_port, chunk_index, chunk_size, file_name)
+                        download_chunk(peer_ip, peer_port, chunk_index, chunk_size, file_name, expected_hash)
                     else:
                         print(f"Invalid chunk index. Please choose between 0 and {total_chunks - 1}.")
                 except ValueError:
