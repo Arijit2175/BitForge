@@ -1,4 +1,5 @@
 import socket
+import json
 
 def download_chunk(peer_ip, peer_port, chunk_index, chunk_size, file_name):
     client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
