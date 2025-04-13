@@ -1,5 +1,6 @@
 import socket
 import os 
+import ast
 from read_torrent import read_torrent_file
 
 def client(peer_ip, peer_port, torrent_metadata):
