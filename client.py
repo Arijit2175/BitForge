@@ -2,39 +2,60 @@ import socket
 import os
 import json
 from read_torrent import read_torrent_file
+from download import download_chunk 
+from reconstruction import reconstruct_file  
+from verification import verify_file 
 
 def client(peer_ip, peer_port, torrent_metadata):
-    client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    client_socket.connect((peer_ip, peer_port))
+    chunk_hashes = torrent_metadata['chunk_hashes']
+    chunk_size = torrent_metadata['chunk_size']
+    total_chunks = len(chunk_hashes)
+    file_name = torrent_metadata['file_name']
 
-    chunk_hashes = json.loads(client_socket.recv(1024).decode())
-    print(f"Available chunks: {chunk_hashes}")
-    
+    output_file_path = input("Enter the output file path to save the reconstructed file: ")
+
     while True:
-        user_input = input("Enter the chunk index you want to download or type 'exit' to stop the server: ")
+        print("\nMenu:")
+        print("1. Download a chunk")
+        print("2. Reconstruct file")
+        print("3. Verify the file")
+        print("4. Exit")
+        
+        user_input = input("Choose an option (1-4): ")
 
-        if user_input.lower() == 'exit':
-            print("Exiting client and closing the connection.")
-            break
+        if user_input == '1':
+            while True:
+                chunk_input = input(f"Enter the chunk index (0 to {total_chunks - 1}) to download or 'exit' to return to the main menu: ")
+                if chunk_input.lower() == 'exit':
+                    break 
+                try:
+                    chunk_index = int(chunk_input)
+                    if 0 <= chunk_index < total_chunks:
+                        print(f"Requesting chunk {chunk_index}")
+                        download_chunk(peer_ip, peer_port, chunk_index, chunk_size, file_name)
+                    else:
+                        print(f"Invalid chunk index. Please choose between 0 and {total_chunks - 1}.")
+                except ValueError:
+                    print("Invalid input. Please enter a valid chunk index or 'exit'.")
+                except Exception as e:
+                    print(f"Error: {e}")
+        
+        elif user_input == '2':
+            print("Reconstructing file...")
+            reconstruct_file(file_name, chunk_size, total_chunks, output_file_path)
+        
+        elif user_input == '3':
+            print("Verifying file...")
+            verify_file(file_name, chunk_size, total_chunks, chunk_hashes)
+        
+        elif user_input == '4':
+            print("Exiting client...")
+            break 
 
-        try:
-            chunk_index = int(user_input)
-            print(f"Requesting chunk {chunk_index}")
-            client_socket.send(str(chunk_index).encode())
+        else:
+            print("Invalid option. Please choose a valid option between 1 and 4.")
 
-            chunk_data = client_socket.recv(torrent_metadata['chunk_size'])
-
-            with open(f"chunk_{chunk_index}_{torrent_metadata['file_name']}", "wb") as f:
-                f.write(chunk_data)
-
-            print(f"Chunk {chunk_index} downloaded successfully!")
-
-        except ValueError:
-            print("Invalid input. Please enter a valid chunk index or 'exit'.")
-        except Exception as e:
-            print(f"Error: {e}")
-
-    client_socket.close()
+    print("Client disconnected.")
 
 if __name__ == "__main__":
     peer_ip = input("Enter the server IP address: ")
