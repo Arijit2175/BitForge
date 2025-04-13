@@ -9,4 +9,7 @@ def chunk_file(file_path):
     file_name = os.path.basename(file_path)
     chunk_hashes = []
 
-    
+    with open(file_path, 'rb') as f:
+        while chunk := f.read(Chunk_size):
+            hash_obj = hashlib.sha256(chunk)
+            chunk.hashes.append(hash_obj.hexdigest())
