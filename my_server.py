@@ -62,16 +62,18 @@ def server(peer_port, torrent_metadata):
             except socket.timeout:
                 continue
 
-    except KeyboardInterrupt:
-        print("\nServer shutdown requested (Ctrl+C). Exiting gracefully...")
-
     finally:
         server_socket.close()
         print("Server has stopped.")
 
 if __name__ == "__main__":
-    peer_port = int(input("Enter port for the server to listen on: "))
-    torrent_file_path = input("Enter path to the .torrent file: ")
-    torrent_metadata = read_torrent_file(torrent_file_path)
+    try:
+        peer_port = int(input("Enter port for the server to listen on: "))
+        torrent_file_path = input("Enter path to the .torrent file: ")
+        torrent_metadata = read_torrent_file(torrent_file_path)
 
-    server(peer_port, torrent_metadata)
+        server(peer_port, torrent_metadata)
+
+    except KeyboardInterrupt:
+        print("\nServer shutdown requested (Ctrl+C). Exiting gracefully...")
+
