@@ -20,3 +20,7 @@ def chunk_file(file_path):
         "chunk_size": CHUNK_SIZE,       # Size of each chunk
         "chunk_hashes": chunk_hashes    # List of hashes for each chunk
     }
+
+    torrent_file = file_path + ".torrent"
+    with open(torrent_file, "w") as out:
+        json.dump(metadata, out, indent=4)
