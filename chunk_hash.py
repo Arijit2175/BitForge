@@ -26,3 +26,6 @@ def chunk_file(file_path):
         json.dump(metadata, out, indent=4)
 
     print(f"Created .torrent file: {torrent_file}")
+
+file_path = input("Enter the path to the file you want to chunk: ")
+chunk_file(file_path)
