@@ -24,3 +24,8 @@ def server(peer_port, torrent_metadata):
                 f.seek(chunk_index * chunk_size)  
                 chunk_data = f.read(chunk_size)
                 client_socket.send(chunk_data)
+
+        except Exception as e:
+            print(f"Error: {e}")
+        finally:
+            client_socket.close()
