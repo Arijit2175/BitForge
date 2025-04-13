@@ -10,3 +10,11 @@ def server(peer_port, torrent_metadata):
     while True:
         client_socket, client_address = server_socket.accept()
         print(f"Connection established with {client_address}")
+
+        try:
+            client_socket.send(str(torrent_metadata['chunk_hashes']).encode())
+
+            chunk_index = int(client_socket.recv(1024).decode())
+
+            chunk_hash = torrent_metadata['chunk_hashes'][chunk_index]
+            print(f"Sending chunk {chunk_index} with hash {chunk_hash}")
