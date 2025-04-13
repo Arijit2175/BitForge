@@ -1,5 +1,6 @@
 import socket
 import os 
+from read_torrent import read_torrent_file
 
 def client(peer_ip, peer_port, chunk_index, torrent_metadata):
     client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -19,3 +20,13 @@ def client(peer_ip, peer_port, chunk_index, torrent_metadata):
 
     print(f"Chunk {chunk_index} downloaded successfully!")
     client_socket.close()
+
+if __name__ == "__main__":
+    peer_ip = input("Enter the server IP address: ")
+    peer_port = int(input("Enter the server port: "))
+    chunk_index = int(input("Enter the chunk index you want to download: "))
+
+    torrent_file_path = input("Enter path to the .torrent file: ")
+    torrent_metadata = read_torrent_file(torrent_file_path)
+    
+    client(peer_ip, peer_port, chunk_index, torrent_metadata)
