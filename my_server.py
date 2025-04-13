@@ -1,4 +1,4 @@
-import socket 
+import socket
 import os
 import json
 from read_torrent import read_torrent_file
@@ -39,7 +39,7 @@ def server(peer_port, torrent_metadata):
             client_socket.close()
 
     server_socket.close()
-    print("Server has stopped.")
+    print("Server has stopped.")  
 
 if __name__ == "__main__":
     peer_port = int(input("Enter port for the server to listen on: "))
@@ -47,4 +47,3 @@ if __name__ == "__main__":
     torrent_metadata = read_torrent_file(torrent_file_path)
     
     server(peer_port, torrent_metadata)
-
