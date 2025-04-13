@@ -12,7 +12,7 @@ def chunk_file(file_path):
     with open(file_path, 'rb') as f:
         while chunk := f.read(Chunk_size):
             hash_obj = hashlib.sha256(chunk)
-            chunk.hashes.append(hash_obj.hexdigest())
+            chunk_hashes.append(hash_obj.hexdigest())
 
     metadata = {
         "file_name": file_name,         
