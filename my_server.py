@@ -15,7 +15,13 @@ def server(peer_port, torrent_metadata):
         try:
             client_socket.send(str(torrent_metadata['chunk_hashes']).encode())
 
-            chunk_index = int(client_socket.recv(1024).decode())
+            client_request = client_socket.recv(1024).decode()
+
+            if client_request.lower() == "exit":
+                print("Client requested server shutdown.")
+                break  
+
+            chunk_index = int(client_request)
 
             chunk_hash = torrent_metadata['chunk_hashes'][chunk_index]
             print(f"Sending chunk {chunk_index} with hash {chunk_hash}")
@@ -31,9 +37,13 @@ def server(peer_port, torrent_metadata):
         finally:
             client_socket.close()
 
+    server_socket.close()
+    print("Server has stopped.")
+
 if __name__ == "__main__":
     peer_port = int(input("Enter port for the server to listen on: "))
     torrent_file_path = input("Enter path to the .torrent file: ")
     torrent_metadata = read_torrent_file(torrent_file_path)
     
     server(peer_port, torrent_metadata)
+
