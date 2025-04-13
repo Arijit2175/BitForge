@@ -18,3 +18,9 @@ def server(peer_port, torrent_metadata):
 
             chunk_hash = torrent_metadata['chunk_hashes'][chunk_index]
             print(f"Sending chunk {chunk_index} with hash {chunk_hash}")
+
+            chunk_size = torrent_metadata['chunk_size']
+            with open(torrent_metadata['file_name'], 'rb') as f:
+                f.seek(chunk_index * chunk_size)  
+                chunk_data = f.read(chunk_size)
+                client_socket.send(chunk_data)
