@@ -24,3 +24,5 @@ def chunk_file(file_path):
     torrent_file = file_path + ".torrent"
     with open(torrent_file, "w") as out:
         json.dump(metadata, out, indent=4)
+
+    print(f"Created .torrent file: {torrent_file}")
