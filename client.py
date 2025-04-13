@@ -12,8 +12,6 @@ def client(peer_ip, peer_port, torrent_metadata):
     total_chunks = len(chunk_hashes)
     file_name = torrent_metadata['file_name']
 
-    output_file_path = input("Enter the output file path to save the reconstructed file: ")
-
     while True:
         print("\nMenu:")
         print("1. Download a chunk")
@@ -41,6 +39,7 @@ def client(peer_ip, peer_port, torrent_metadata):
                     print(f"Error: {e}")
         
         elif user_input == '2':
+            output_file_path = input("Enter the output file path to save the reconstructed file: ")
             print("Reconstructing file...")
             reconstruct_file(file_name, chunk_size, total_chunks, output_file_path)
         
