@@ -1,21 +1,18 @@
 import hashlib
+import os
 
-def verify_file(file_name, chunk_size, total_chunks, expected_chunk_hashes):
-    reconstructed_hashes = []
+def verify_file(file_name, chunk_size, total_chunks, chunk_hashes):
+    reconstructed_file_size = sum([chunk_size for _ in range(total_chunks)]) 
+    with open(file_name, 'rb') as f:
+        file_data = f.read()
 
     for chunk_index in range(total_chunks):
-        chunk_file_name = f"{file_name}.chunk_{chunk_index}"
-        try:
-            with open(chunk_file_name, 'rb') as chunk_file:
-                chunk_data = chunk_file.read()
-                chunk_hash = hashlib.sha256(chunk_data).hexdigest()
-                reconstructed_hashes.append(chunk_hash)
-                print(f"Hash of chunk {chunk_index}: {chunk_hash}")
+        chunk_data = file_data[chunk_index * chunk_size: (chunk_index + 1) * chunk_size]
+        chunk_hash = hashlib.sha256(chunk_data).hexdigest()
+        if chunk_hash == chunk_hashes[chunk_index]:
+            print(f"Chunk {chunk_index} verified successfully!")
+        else:
+            print(f"Error: Chunk {chunk_index} verification failed. Hash mismatch!")
+            return False  
 
-        except Exception as e:
-            print(f"Error verifying chunk {chunk_index}: {e}")
-
-    if reconstructed_hashes == expected_chunk_hashes:
-        print("File verification successful: All chunks match the expected hashes.")
-    else:
-        print("File verification failed: Some chunks do not match the expected hashes.")
+    return True  
