@@ -1,5 +1,6 @@
 import socket 
 import os
+from read_torrent import read_torrent_file
 
 def server(peer_port, torrent_metadata):
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -29,3 +30,10 @@ def server(peer_port, torrent_metadata):
             print(f"Error: {e}")
         finally:
             client_socket.close()
+
+if __name__ == "__main__":
+    peer_port = int(input("Enter port for the server to listen on: "))
+    torrent_file_path = input("Enter path to the .torrent file: ")
+    torrent_metadata = read_torrent_file(torrent_file_path)
+    
+    server(peer_port, torrent_metadata)
