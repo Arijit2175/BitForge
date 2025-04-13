@@ -1,5 +1,6 @@
 import socket 
 import os
+import json
 from read_torrent import read_torrent_file
 
 def server(peer_port, torrent_metadata):
@@ -13,7 +14,7 @@ def server(peer_port, torrent_metadata):
         print(f"Connection established with {client_address}")
 
         try:
-            client_socket.send(str(torrent_metadata['chunk_hashes']).encode())
+            client_socket.send(json.dumps(torrent_metadata['chunk_hashes']).encode())
 
             client_request = client_socket.recv(1024).decode()
 
