@@ -17,7 +17,7 @@ def chunk_file(file_path):
     metadata = {
         "file_name": file_name,         
         "file_size": file_size,         
-        "chunk_size": CHUNK_SIZE,       
+        "chunk_size": Chunk_size,       
         "chunk_hashes": chunk_hashes   
     }
 
