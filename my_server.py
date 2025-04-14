@@ -42,8 +42,12 @@ def server(peer_port, torrent_metadata):
                             chunk_size = torrent_metadata['chunk_size']
                             with open(torrent_metadata['file_name'], 'rb') as f:
                                 f.seek(chunk_index * chunk_size)
-                                chunk_data = f.read(chunk_size)
-                                client_socket.send(chunk_data)
+                                file_size = os.path.getsize(torrent_metadata['file_name'])
+                                start = chunk_index * chunk_size
+                                end = min(start + chunk_size, file_size)
+                                f.seek(start)
+                                chunk_data = f.read(end - start)
+                                client_socket.sendall(chunk_data)
 
                         except ValueError:
                             print(f"Invalid chunk index {client_request} received from client.")
