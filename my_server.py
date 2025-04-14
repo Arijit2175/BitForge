@@ -20,7 +20,7 @@ def server(peer_port, torrent_metadata):
                 client_socket.settimeout(60)
 
                 try:
-                    client_socket.send(json.dumps(torrent_metadata['chunk_hashes']).encode())
+                    #client_socket.send(json.dumps(torrent_metadata['chunk_hashes']).encode())
 
                     while True:
                         client_request = client_socket.recv(1024).decode()
