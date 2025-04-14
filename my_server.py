@@ -47,6 +47,8 @@ def server(peer_port, torrent_metadata):
                                 end = min(start + chunk_size, file_size)
                                 f.seek(start)
                                 chunk_data = f.read(end - start)
+                                chunk_len = len(chunk_data)
+                                client_socket.sendall(str(chunk_len).encode().ljust(16)) 
                                 client_socket.sendall(chunk_data)
 
                         except ValueError:
