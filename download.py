@@ -6,10 +6,11 @@ def download_chunk(peer_ip, peer_port, chunk_index, chunk_size, file_name, expec
         client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         client_socket.connect((peer_ip, peer_port))
         client_socket.send(str(chunk_index).encode())
+        chunk_len = int(client_socket.recv(16).decode().strip())
 
         received_data = b""
-        while len(received_data) < chunk_size:
-            part = client_socket.recv(min(4096, chunk_size - len(received_data)))
+        while len(received_data) < chunk_len:
+            part = client_socket.recv(min(4096, chunk_len - len(received_data)))
             if not part:
                 break
             received_data += part
