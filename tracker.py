@@ -15,3 +15,12 @@ def handle_peer(conn, addr):
             peer_chunk_map[peer] = chunks
             print(f"Registered peer {peer} with chunks {chunks}")
             conn.send(b"registered")
+
+        elif request["type"] == "lookup":
+            chunk_index = request["chunk_index"]
+            peers_with_chunk = [
+                {"ip": ip, "port": port}
+                for (ip, port), chunks in peer_chunk_map.items()
+                if chunk_index in chunks
+            ]
+            conn.send(json.dumps(peers_with_chunk).encode())
