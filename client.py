@@ -33,6 +33,11 @@ def client(tracker_ip, tracker_port, torrent_metadata):
     total_chunks = len(chunk_hashes)
     file_name = torrent_metadata['file_name']
 
+    ip = input("Enter your IP address: ")
+    port = int(input("Enter your listening port: "))
+    available_chunks = list(map(int, input(f"Enter the chunk indices you have (e.g. 0,1,2): ").split(',')))
+    register_with_tracker(tracker_ip, tracker_port, file_name, ip, port, available_chunks)
+
     while True:
         print("\nMenu:")
         print("1. Download a chunk")
