@@ -34,6 +34,7 @@ def lookup_chunk():
     try:
         data = request.get_json()
         chunk_index = data.get("chunk_index")
+        print(f"Lookup request for chunk {chunk_index}") 
 
         if chunk_index is None:
             return jsonify({"error": "chunk_index is required"}), 400
@@ -45,10 +46,10 @@ def lookup_chunk():
         ]
 
         if not peers_with_chunk:
-            return jsonify({"peers": []}), 404 
+            print(f"No peers found for chunk {chunk_index}.")  
+            return jsonify({"peers": []}), 404  
 
-        print(f"Peer lookup for chunk {chunk_index}: {peers_with_chunk}")
-
+        print(f"Found peers for chunk {chunk_index}: {peers_with_chunk}")  
         return jsonify({"peers": peers_with_chunk}), 200
 
     except Exception as e:
