@@ -44,7 +44,7 @@ def lookup_chunk():
         ]
 
         if not peers_with_chunk:
-            return jsonify({"message": "No peers available for this chunk"}), 404
+            return jsonify({"peers": []}), 404 
 
         print(f"Peer lookup for chunk {chunk_index}: {peers_with_chunk}")
 
