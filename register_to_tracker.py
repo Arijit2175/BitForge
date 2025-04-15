@@ -1,20 +1,19 @@
-import socket
-import json
+import requests
 
 def register_with_tracker(tracker_ip, tracker_port, file_name, ip, port, available_chunks):
+    url = f"http://{tracker_ip}:{tracker_port}/register"
     data = {
-        "type": "register",
         "file_name": file_name,
         "ip": ip,
         "port": port,
         "chunks": available_chunks
     }
 
-    message = json.dumps(data)
-
-    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-        s.connect((tracker_ip, tracker_port))
-        s.send(message.encode())
-
-        response = s.recv(4096).decode()
-        print("Response from tracker:", response)
+    try:
+        response = requests.post(url, json=data)
+        if response.status_code == 200:
+            print("✅ Successfully registered with tracker:", response.json())
+        else:
+            print("Failed to register. Tracker responded with:", response.status_code, response.text)
+    except Exception as e:
+        print("Error during registration:", e)
