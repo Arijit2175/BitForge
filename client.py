@@ -5,9 +5,9 @@ from read_torrent import read_torrent_file
 from download import download_chunk 
 from reconstruction import reconstruct_file  
 from verification import verify_file 
-from get_peers_from_tracker import get_peers_from_chunk
+from get_peers_from_tracker import get_peers_for_chunk
 
-def client(peer_ip, peer_port, torrent_metadata):
+def client(tracker_url, torrent_metadata):
     chunk_hashes = torrent_metadata['chunk_hashes']
     chunk_size = torrent_metadata['chunk_size']
     total_chunks = len(chunk_hashes)
@@ -32,7 +32,13 @@ def client(peer_ip, peer_port, torrent_metadata):
                     if 0 <= chunk_index < total_chunks:
                         print(f"Requesting chunk {chunk_index}")
                         expected_hash = chunk_hashes[chunk_index]
-                        download_chunk(peer_ip, peer_port, chunk_index, chunk_size, file_name, expected_hash)
+                        peers = get_peers_for_chunk(tracker_url, file_name, chunk_index)
+                        if not peers:
+                            print(f"No peers found for chunk {chunk_index}.")
+                            continue
+                        peer = peers[0]
+                        print(f"Attempting to download chunk {chunk_index} from {peer['ip']}:{peer['port']}")
+                        download_chunk(peer['ip'], peer['port'], chunk_index, chunk_size, file_name, expected_hash)
                     else:
                         print(f"Invalid chunk index. Please choose between 0 and {total_chunks - 1}.")
                 except ValueError:
@@ -59,10 +65,8 @@ def client(peer_ip, peer_port, torrent_metadata):
     print("Client disconnected.")
 
 if __name__ == "__main__":
-    peer_ip = input("Enter the server IP address: ")
-    peer_port = int(input("Enter the server port: "))
-
+    tracker_url = input("Enter the tracker URL: ")
     torrent_file_path = input("Enter path to the .torrent file: ")
     torrent_metadata = read_torrent_file(torrent_file_path)
 
-    client(peer_ip, peer_port, torrent_metadata)
+    client(tracker_url, torrent_metadata)
