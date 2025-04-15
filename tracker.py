@@ -16,7 +16,7 @@ def register_peer():
 
         if not all([file_name, ip, port, chunks]):
             return jsonify({"error": "Missing required fields"}), 400
-        
+
         peer = (ip, port)
         peer_chunk_map[peer] = chunks
 
@@ -27,6 +27,7 @@ def register_peer():
     except Exception as e:
         print(f"Error during registration: {e}")
         return jsonify({"error": "Registration failed"}), 500
+
 
 @app.route('/lookup', methods=['POST'])
 def lookup_chunk():
