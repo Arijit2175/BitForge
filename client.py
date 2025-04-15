@@ -1,13 +1,14 @@
 import socket
 import os
 import json
+from urllib.parse import urlparse 
 from read_torrent import read_torrent_file
 from download import download_chunk 
 from reconstruction import reconstruct_file  
 from verification import verify_file 
 from get_peers_from_tracker import get_peers_for_chunk
 
-def client(tracker_url, torrent_metadata):
+def client(tracker_ip, tracker_port, torrent_metadata):
     chunk_hashes = torrent_metadata['chunk_hashes']
     chunk_size = torrent_metadata['chunk_size']
     total_chunks = len(chunk_hashes)
@@ -32,7 +33,7 @@ def client(tracker_url, torrent_metadata):
                     if 0 <= chunk_index < total_chunks:
                         print(f"Requesting chunk {chunk_index}")
                         expected_hash = chunk_hashes[chunk_index]
-                        peers = get_peers_for_chunk(tracker_url, 9000, file_name, chunk_index)
+                        peers = get_peers_for_chunk(tracker_ip, tracker_port, file_name, chunk_index)
                         if not peers:
                             print(f"No peers found for chunk {chunk_index}.")
                             continue
@@ -65,8 +66,17 @@ def client(tracker_url, torrent_metadata):
     print("Client disconnected.")
 
 if __name__ == "__main__":
-    tracker_url = input("Enter the tracker URL: ")
+    tracker_input = input("Enter the tracker address (e.g., 127.0.0.1 or http://127.0.0.1:9000): ")
+
+    if tracker_input.startswith("http"):
+        parsed = urlparse(tracker_input)
+        tracker_ip = parsed.hostname
+        tracker_port = parsed.port
+    else:
+        tracker_ip = tracker_input
+        tracker_port = int(input("Enter the tracker port (e.g., 9000): "))
+
     torrent_file_path = input("Enter path to the .torrent file: ")
     torrent_metadata = read_torrent_file(torrent_file_path)
 
-    client(tracker_url, torrent_metadata)
+    client(tracker_ip, tracker_port, torrent_metadata)
