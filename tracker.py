@@ -24,3 +24,8 @@ def handle_peer(conn, addr):
                 if chunk_index in chunks
             ]
             conn.send(json.dumps(peers_with_chunk).encode())
+
+    except Exception as e:
+        print(f"Error handling peer {addr}: {e}")
+    finally:
+        conn.close()
