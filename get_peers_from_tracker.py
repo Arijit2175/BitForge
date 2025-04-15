@@ -15,23 +15,20 @@ def get_peers_for_chunk(tracker_ip, tracker_port, file_name, chunk_index):
             s.connect((tracker_ip, tracker_port))  
             s.send(message.encode()) 
 
-            response = s.recv(4096).decode()
-            print(f"Received response from tracker: {response}") 
+            response = s.recv(4096).decode()  
+            peers = json.loads(response) 
 
-            try:
-                peers = json.loads(response)
-                if isinstance(peers, list):
-                    return peers  
-                else:
-                    print("Unexpected response format from tracker:", peers)
-                    return []
-            except json.JSONDecodeError:
-                print("Error decoding JSON response from tracker.")
+            print(f"Received response from tracker: {peers}")  
+
+            if isinstance(peers, list):
+                return peers  
+            else:
+                print("Unexpected response format from tracker:", peers)
                 return []
 
-        except socket.error as e:
-            print(f"Socket error while connecting to tracker: {e}")
+        except json.JSONDecodeError:
+            print("Error decoding JSON response from tracker.")
             return []
         except Exception as e:
-            print(f"Unexpected error while connecting to tracker: {e}")
+            print(f"Error connecting to tracker: {e}")
             return []
