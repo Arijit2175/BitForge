@@ -7,35 +7,52 @@ peer_chunk_map = {}
 
 @app.route('/register', methods=['POST'])
 def register_peer():
-    data = request.get_json()
+    try:
+        data = request.get_json()
+        file_name = data.get("file_name")
+        ip = data.get("ip")
+        port = data.get("port")
+        chunks = data.get("chunks")
 
-    file_name = data.get("file_name")
-    ip = data.get("ip")
-    port = data.get("port")
-    chunks = data.get("chunks")
+        if not all([file_name, ip, port, chunks]):
+            return jsonify({"error": "Missing required fields"}), 400
+        
+        peer = (ip, port)
+        peer_chunk_map[peer] = chunks
 
-    peer = (ip, port)
-    peer_chunk_map[peer] = chunks
+        print(f"Registered peer {peer} with chunks {chunks}")
+        print(f"Current peer_chunk_map: {peer_chunk_map}")
 
-    print(f"Registered peer {peer} with chunks {chunks}")
-    print(f"Current peer_chunk_map: {peer_chunk_map}")
-
-    return jsonify({"message": "Successfully registered with tracker."}), 200
+        return jsonify({"message": "Successfully registered with tracker."}), 200
+    except Exception as e:
+        print(f"Error during registration: {e}")
+        return jsonify({"error": "Registration failed"}), 500
 
 @app.route('/lookup', methods=['POST'])
 def lookup_chunk():
-    data = request.get_json()
-    chunk_index = data.get("chunk_index")
+    try:
+        data = request.get_json()
+        chunk_index = data.get("chunk_index")
 
-    peers_with_chunk = [
-        {"ip": ip, "port": port}
-        for (ip, port), chunks in peer_chunk_map.items()
-        if chunk_index in chunks
-    ]
+        if chunk_index is None:
+            return jsonify({"error": "chunk_index is required"}), 400
 
-    print(f"Peer lookup for chunk {chunk_index}: {peers_with_chunk}")
+        peers_with_chunk = [
+            {"ip": ip, "port": port}
+            for (ip, port), chunks in peer_chunk_map.items()
+            if chunk_index in chunks
+        ]
 
-    return jsonify(peers_with_chunk), 200
+        if not peers_with_chunk:
+            return jsonify({"message": "No peers available for this chunk"}), 404
+
+        print(f"Peer lookup for chunk {chunk_index}: {peers_with_chunk}")
+
+        return jsonify({"peers": peers_with_chunk}), 200
+
+    except Exception as e:
+        print(f"Error during chunk lookup: {e}")
+        return jsonify({"error": "Chunk lookup failed"}), 500
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=9000)
