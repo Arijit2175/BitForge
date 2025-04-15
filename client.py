@@ -32,7 +32,7 @@ def client(tracker_url, torrent_metadata):
                     if 0 <= chunk_index < total_chunks:
                         print(f"Requesting chunk {chunk_index}")
                         expected_hash = chunk_hashes[chunk_index]
-                        peers = get_peers_for_chunk(tracker_url, file_name, chunk_index)
+                        peers = get_peers_for_chunk(tracker_url, 9000, file_name, chunk_index)
                         if not peers:
                             print(f"No peers found for chunk {chunk_index}.")
                             continue
