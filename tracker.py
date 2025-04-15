@@ -40,3 +40,6 @@ def tracker_server(port=9000):
     while True:
         conn, addr = server_socket.accept()
         threading.Thread(target=handle_peer, args=(conn, addr)).start()
+
+if __name__ == "__main__":
+    tracker_server()
