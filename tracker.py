@@ -1,45 +1,41 @@
 import json
-import socket
-import threading
+from flask import Flask, request, jsonify
+
+app = Flask(__name__)
 
 peer_chunk_map = {}
 
-def handle_peer(conn, addr):
-    try:
-        data = conn.recv(4096).decode()
-        request = json.loads(data)
+@app.route('/register', methods=['POST'])
+def register_peer():
+    data = request.get_json()
 
-        if request["type"] == "register":
-            peer = (request["ip"], request["port"])
-            chunks = request["chunks"]
-            peer_chunk_map[peer] = chunks
-            print(f"Registered peer {peer} with chunks {chunks}")
-            conn.send(b"registered")
+    file_name = data.get("file_name")
+    ip = data.get("ip")
+    port = data.get("port")
+    chunks = data.get("chunks")
 
-        elif request["type"] == "lookup":
-            chunk_index = request["chunk_index"]
-            peers_with_chunk = [
-                {"ip": ip, "port": port}
-                for (ip, port), chunks in peer_chunk_map.items()
-                if chunk_index in chunks
-            ]
-            conn.send(json.dumps(peers_with_chunk).encode())
+    peer = (ip, port)
+    peer_chunk_map[peer] = chunks
 
-    except Exception as e:
-        print(f"Error handling peer {addr}: {e}")
-    finally:
-        conn.close()
+    print(f"Registered peer {peer} with chunks {chunks}")
+    print(f"Current peer_chunk_map: {peer_chunk_map}")
 
-def tracker_server(port=9000):
-    """Starts the tracker server to accept connections from peers."""
-    server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    server_socket.bind(('0.0.0.0', port))  
-    server_socket.listen(10) 
-    print(f"Tracker server listening on port {port}...")
+    return jsonify({"message": "Successfully registered with tracker."}), 200
 
-    while True:
-        conn, addr = server_socket.accept()
-        threading.Thread(target=handle_peer, args=(conn, addr)).start()
+@app.route('/lookup', methods=['POST'])
+def lookup_chunk():
+    data = request.get_json()
+    chunk_index = data.get("chunk_index")
 
-if __name__ == "__main__":
-    tracker_server()
+    peers_with_chunk = [
+        {"ip": ip, "port": port}
+        for (ip, port), chunks in peer_chunk_map.items()
+        if chunk_index in chunks
+    ]
+
+    print(f"Peer lookup for chunk {chunk_index}: {peers_with_chunk}")
+
+    return jsonify(peers_with_chunk), 200
+
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=9000)
