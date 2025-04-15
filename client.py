@@ -5,6 +5,7 @@ from read_torrent import read_torrent_file
 from download import download_chunk 
 from reconstruction import reconstruct_file  
 from verification import verify_file 
+from get_peers_from_tracker import get_peers_from_chunk
 
 def client(peer_ip, peer_port, torrent_metadata):
     chunk_hashes = torrent_metadata['chunk_hashes']
