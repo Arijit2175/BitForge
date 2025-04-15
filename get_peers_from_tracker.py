@@ -1,34 +1,22 @@
-import socket
-import json
+import requests
 
 def get_peers_for_chunk(tracker_ip, tracker_port, file_name, chunk_index):
+    url = f"http://{tracker_ip}:{tracker_port}/lookup"
     data = {
-        "type": "lookup",
         "file_name": file_name,
         "chunk_index": chunk_index
     }
 
-    message = json.dumps(data)
-
-    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-        try:
-            s.connect((tracker_ip, tracker_port))  
-            s.send(message.encode()) 
-
-            response = s.recv(4096).decode()  
-            peers = json.loads(response) 
-
-            print(f"Received response from tracker: {peers}")  
-
-            if isinstance(peers, list):
-                return peers  
-            else:
-                print("Unexpected response format from tracker:", peers)
-                return []
-
-        except json.JSONDecodeError:
-            print("Error decoding JSON response from tracker.")
+    try:
+        response = requests.post(url, json=data)
+        if response.status_code == 200:
+            result = response.json()
+            peers = result.get("peers", [])
+            print(f"Peers with chunk {chunk_index}: {peers}")
+            return peers
+        else:
+            print(f"No peers found or error. Status: {response.status_code}, Message: {response.text}")
             return []
-        except Exception as e:
-            print(f"Error connecting to tracker: {e}")
-            return []
+    except Exception as e:
+        print(f"Error during peer lookup: {e}")
+        return []
