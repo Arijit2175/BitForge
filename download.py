@@ -9,6 +9,9 @@ def download_chunk(peer_ip, peer_port, chunk_index, chunk_size, file_name, expec
         
         chunk_len = int(client_socket.recv(16).decode().strip())
 
+        if chunk_len != chunk_size:
+            print(f"Warning: Chunk {chunk_index} size mismatch. Expected {chunk_size}, but received {chunk_len}.")
+        
         received_data = b""
         while len(received_data) < chunk_len:
             part = client_socket.recv(min(4096, chunk_len - len(received_data)))
@@ -24,7 +27,7 @@ def download_chunk(peer_ip, peer_port, chunk_index, chunk_size, file_name, expec
 
         if chunk_hash == expected_hash:
             print(f"Chunk {chunk_index} verified successfully!")
-            return received_data 
+            return received_data
         else:
             print(f"Hash mismatch for chunk {chunk_index}!")
             print(f"Expected: {expected_hash}")
@@ -33,4 +36,4 @@ def download_chunk(peer_ip, peer_port, chunk_index, chunk_size, file_name, expec
 
     except Exception as e:
         print(f"Error while downloading chunk {chunk_index}: {e}")
-        return None 
+        return None
