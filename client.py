@@ -2,12 +2,13 @@ import socket
 import os
 import json
 import requests
-from urllib.parse import urlparse 
+from urllib.parse import urlparse
 from read_torrent import read_torrent_file
-from download import download_chunk 
-from reconstruction import reconstruct_file  
-from verification import verify_file 
+from download import download_chunk
+from reconstruction import reconstruct_file
+from verification import verify_file
 from get_peers_from_tracker import get_peers_for_chunk
+from parallel_downloader import download_file  
 
 def register_with_tracker(tracker_ip, tracker_port, file_name, ip, port, available_chunks):
     url = f"http://{tracker_ip}:{tracker_port}/register"
@@ -35,41 +36,23 @@ def client(tracker_ip, tracker_port, torrent_metadata):
 
     ip = input("Enter your IP address: ")
     port = int(input("Enter your listening port: "))
+    
     available_chunks = list(map(int, input(f"Enter the chunk indices you have (e.g. 0,1,2): ").split(',')))
     register_with_tracker(tracker_ip, tracker_port, file_name, ip, port, available_chunks)
 
     while True:
         print("\nMenu:")
-        print("1. Download a chunk")
+        print("1. Download multiple chunks in parallel")
         print("2. Reconstruct file")
         print("3. Verify the file")
         print("4. Exit")
-        
+
         user_input = input("Choose an option (1-4): ")
 
         if user_input == '1':
-            while True:
-                chunk_input = input(f"Enter the chunk index (0 to {total_chunks - 1}) to download or 'exit' to return to the main menu: ")
-                if chunk_input.lower() == 'exit':
-                    break 
-                try:
-                    chunk_index = int(chunk_input)
-                    if 0 <= chunk_index < total_chunks:
-                        print(f"Requesting chunk {chunk_index}")
-                        expected_hash = chunk_hashes[chunk_index]
-                        peers = get_peers_for_chunk(tracker_ip, tracker_port, file_name, chunk_index)
-                        if not peers:
-                            print(f"No peers found for chunk {chunk_index}.")
-                            continue
-                        peer = peers[0]
-                        print(f"Attempting to download chunk {chunk_index} from {peer['ip']}:{peer['port']}")
-                        download_chunk(peer['ip'], peer['port'], chunk_index, chunk_size, file_name, expected_hash)
-                    else:
-                        print(f"Invalid chunk index. Please choose between 0 and {total_chunks - 1}.")
-                except ValueError:
-                    print("Invalid input. Please enter a valid chunk index or 'exit'.")
-                except Exception as e:
-                    print(f"Error: {e}")
+            output_file_path = input("Enter the output file path to save the reconstructed file: ")
+            print("Downloading multiple chunks in parallel...")
+            download_file(tracker_ip, tracker_port, chunk_size, file_name, chunk_hashes, total_chunks, output_file_path)
         
         elif user_input == '2':
             output_file_path = input("Enter the output file path to save the reconstructed file: ")
