@@ -24,16 +24,13 @@ def download_chunk(peer_ip, peer_port, chunk_index, chunk_size, file_name, expec
 
         if chunk_hash == expected_hash:
             print(f"Chunk {chunk_index} verified successfully!")
-            with open(f"chunk_{chunk_index}_{file_name}", 'wb') as f:
-                f.write(received_data)
-            print(f"Chunk {chunk_index} saved to disk.")
-            return True
+            return received_data 
         else:
             print(f"Hash mismatch for chunk {chunk_index}!")
             print(f"Expected: {expected_hash}")
             print(f"Got     : {chunk_hash}")
-            return False
+            return None  
 
     except Exception as e:
         print(f"Error while downloading chunk {chunk_index}: {e}")
-        return False
+        return None 
