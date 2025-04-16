@@ -52,7 +52,7 @@ def client(tracker_ip, tracker_port, torrent_metadata):
         if user_input == '1':
             output_file_path = input("Enter the output file path to save the reconstructed file: ")
             print("Downloading multiple chunks in parallel...")
-            download_file(tracker_ip, tracker_port, chunk_size, file_name, chunk_hashes, total_chunks, output_file_path)
+            download_file(tracker_ip, tracker_port, torrent_metadata, output_file_path)
         
         elif user_input == '2':
             output_file_path = input("Enter the output file path to save the reconstructed file: ")
