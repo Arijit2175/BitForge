@@ -5,8 +5,6 @@ import requests
 from urllib.parse import urlparse
 from read_torrent import read_torrent_file
 from download import download_chunk
-from reconstruction import reconstruct_file
-from verification import verify_file
 from get_peers_from_tracker import get_peers_for_chunk
 from parallel_downloader import download_file  
 
@@ -43,11 +41,9 @@ def client(tracker_ip, tracker_port, torrent_metadata):
     while True:
         print("\nMenu:")
         print("1. Download multiple chunks in parallel")
-        print("2. Reconstruct file")
-        print("3. Verify the file")
-        print("4. Exit")
+        print("2. Exit")
 
-        user_input = input("Choose an option (1-4): ")
+        user_input = input("Choose an option (1-2): ")
 
         if user_input == '1':
             output_file_path = input("Enter the output file path to save the reconstructed file: ")
@@ -55,20 +51,11 @@ def client(tracker_ip, tracker_port, torrent_metadata):
             download_file(tracker_ip, tracker_port, torrent_metadata, output_file_path)
         
         elif user_input == '2':
-            output_file_path = input("Enter the output file path to save the reconstructed file: ")
-            print("Reconstructing file...")
-            reconstruct_file(file_name, chunk_size, total_chunks, output_file_path)
-        
-        elif user_input == '3':
-            print("Verifying file...")
-            verify_file(file_name, chunk_size, total_chunks, chunk_hashes)
-        
-        elif user_input == '4':
             print("Exiting client...")
             break 
 
         else:
-            print("Invalid option. Please choose a valid option between 1 and 4.")
+            print("Invalid option. Please choose a valid option between 1 and 2.")
 
     print("Client disconnected.")
 
