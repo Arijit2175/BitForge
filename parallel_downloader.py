@@ -24,10 +24,11 @@ def download_file(tracker_ip, tracker_port, torrent_metadata, output_dir="."):
             peer_port = peer['port']
             print(f"Attempting to download chunk {chunk_index} from {peer_ip}:{peer_port}")
             received_data = download_chunk(peer_ip, peer_port, chunk_index, chunk_size, file_name, chunk_hashes[chunk_index])
-            if received_data:
+            
+            if received_data: 
                 chunk_file_path = os.path.join(output_dir, f"chunk_{chunk_index}_{file_name}")
                 with open(chunk_file_path, 'wb') as f:
-                    f.write(received_data)  
+                    f.write(received_data) 
                 print(f"Chunk {chunk_index} saved to {chunk_file_path}.")
                 return
             else:
