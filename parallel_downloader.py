@@ -1,7 +1,10 @@
 import os
 import threading
+import json
 from get_peers_from_tracker import get_peers_for_chunk
 from download import download_chunk
+from verification import verify_chunk
+from resume import generate_resume  
 
 def download_file(tracker_ip, tracker_port, torrent_metadata, output_dir="."):
     file_name = torrent_metadata['file_name']
@@ -11,14 +14,28 @@ def download_file(tracker_ip, tracker_port, torrent_metadata, output_dir="."):
 
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
-    elif not os.path.isdir(output_dir):
-        raise ValueError(f"Output path '{output_dir}' is not a directory.")
 
-    completed_chunks = 0
-    completed_chunks_lock = threading.Lock()
+    resume_path = os.path.join(output_dir, f"{file_name}.resume.json")
+
+    if os.path.exists(resume_path):
+        with open(resume_path, 'r') as f:
+            resume_data = json.load(f)
+            print(f"Loaded resume metadata from {resume_path}")
+    else:
+        resume_data = generate_resume(file_name, chunk_hashes, chunk_size, output_dir)
+
+    resume_lock = threading.Lock()
+
+    def update_resume(chunk_index):
+        with resume_lock:
+            resume_data[str(chunk_index)] = True
+            with open(resume_path, 'w') as f:
+                json.dump(resume_data, f, indent=2)
 
     def download_worker(chunk_index):
-        nonlocal completed_chunks
+        if str(chunk_index) in resume_data and resume_data[str(chunk_index)]:
+            print(f"Skipping chunk {chunk_index} (already downloaded and verified).")
+            return
 
         print(f"Requesting chunk {chunk_index}")
         peers = get_peers_for_chunk(tracker_ip, tracker_port, file_name, chunk_index)
@@ -29,39 +46,25 @@ def download_file(tracker_ip, tracker_port, torrent_metadata, output_dir="."):
 
         print(f"Peers with chunk {chunk_index}: {peers}")
 
-        max_attempts = 3
-        success = False
+        for peer in peers:
+            peer_ip = peer['ip']
+            peer_port = peer['port']
+            print(f"Attempting to download chunk {chunk_index} from {peer_ip}:{peer_port}")
+            received_data = download_chunk(peer_ip, peer_port, chunk_index, chunk_size, file_name, chunk_hashes[chunk_index])
+            if received_data:
+                chunk_file_path = os.path.join(output_dir, f"chunk_{chunk_index}_{file_name}")
+                with open(chunk_file_path, 'wb') as f:
+                    f.write(received_data)
+                if verify_chunk(chunk_file_path, chunk_hashes[chunk_index]):
+                    print(f"Chunk {chunk_index} verified and saved to {chunk_file_path}.")
+                    update_resume(chunk_index)
+                    return
+                else:
+                    print(f"Chunk {chunk_index} failed verification.")
+            else:
+                print(f"Failed to download chunk {chunk_index} from {peer_ip}:{peer_port}")
 
-        for attempt in range(max_attempts):
-            for peer in peers:
-                peer_ip = peer['ip']
-                peer_port = peer['port']
-                print(f"Attempt {attempt + 1}: Downloading chunk {chunk_index} from {peer_ip}:{peer_port}")
-                
-                received_data = download_chunk(
-                    peer_ip, peer_port, chunk_index, chunk_size, file_name, chunk_hashes[chunk_index]
-                )
-
-                if received_data:
-                    chunk_file_path = os.path.join(output_dir, f"chunk_{chunk_index}_{file_name}")
-                    try:
-                        with open(chunk_file_path, 'wb') as f:
-                            f.write(received_data)
-                        print(f"Chunk {chunk_index} saved to {chunk_file_path}.")
-                        success = True
-                    except Exception as e:
-                        print(f"Failed to write chunk {chunk_index}: {e}")
-                    break 
-            if success:
-                break
-
-        if not success:
-            print(f"All attempts failed for chunk {chunk_index}.")
-
-        if success:
-            with completed_chunks_lock:
-                completed_chunks += 1
-                print(f"[{completed_chunks}/{total_chunks}] chunks downloaded.")
+        print(f"All attempts failed for chunk {chunk_index}.")
 
     threads = []
 
@@ -75,20 +78,17 @@ def download_file(tracker_ip, tracker_port, torrent_metadata, output_dir="."):
 
     print("All chunks attempted.")
 
-    output_file_path = os.path.join(output_dir, file_name)
-    try:
+    if all(resume_data.get(str(i)) for i in range(total_chunks)):
+        output_file_path = os.path.join(output_dir, file_name)
         with open(output_file_path, 'wb') as f:
             for i in range(total_chunks):
                 chunk_file_path = os.path.join(output_dir, f"chunk_{i}_{file_name}")
-                try:
-                    with open(chunk_file_path, 'rb') as chunk_file:
-                        f.write(chunk_file.read())
-                    os.remove(chunk_file_path)
-                    print(f"Chunk {i} added to the reconstructed file.")
-                except Exception as e:
-                    print(f"Error reading or deleting chunk {i}: {e}")
-    except Exception as e:
-        print(f"Failed to create reconstructed file: {e}")
-        return
+                with open(chunk_file_path, 'rb') as chunk_file:
+                    f.write(chunk_file.read())
+                os.remove(chunk_file_path)
+                print(f"Chunk {i} added to the reconstructed file.")
 
-    print(f"File successfully reconstructed as {output_file_path}")
+        print(f"File successfully reconstructed as {output_file_path}")
+        os.remove(resume_path)
+    else:
+        print("File not fully downloaded yet. Resume next time to continue.")
