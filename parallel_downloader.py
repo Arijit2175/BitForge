@@ -23,8 +23,7 @@ def download_file(tracker_ip, tracker_port, torrent_metadata, output_dir="."):
             resume_data = json.load(f)
             print(f"Loaded resume metadata from {resume_path}")
     else:
-        chunk_status = [False] * total_chunks
-        resume_data = generate_resume(resume_path, chunk_status, total_chunks)
+        resume_data = generate_resume(file_name, chunk_hashes, chunk_size, output_dir)
 
     resume_lock = threading.Lock()
 
@@ -99,3 +98,4 @@ def download_file(tracker_ip, tracker_port, torrent_metadata, output_dir="."):
         os.remove(resume_path)
     else:
         print("File not fully downloaded yet. Resume next time to continue.")
+
