@@ -7,35 +7,18 @@ def generate_resume(file_name, chunk_hashes, chunk_size, output_dir="."):
         os.makedirs(output_dir)
     
     resume_file = os.path.join(output_dir, f"{file_name}.resume.json")
-    total_chunks = len(chunk_hashes)
-
-    chunks_status = {}
-
-    if os.path.exists(file_name):
-        with open(file_name, 'rb') as f:
-            for chunk_index in range(total_chunks):
-                f.seek(chunk_index * chunk_size)
-                chunk_data = f.read(chunk_size)
-
-                actual_hash = hashlib.sha256(chunk_data).hexdigest()
-                expected_hash = chunk_hashes[chunk_index]
-
-                if actual_hash == expected_hash:
-                    chunks_status[str(chunk_index)] = True
-                else:
-                    chunks_status[str(chunk_index)] = False
-    else:
-        chunks_status = {str(i): False for i in range(total_chunks)}
-
+    
     resume_data = {
         "file_name": file_name,
-        "chunks": chunks_status
+        "chunks": {str(i): False for i in range(len(chunk_hashes))}  
     }
-
-    with open(resume_file, 'w') as f:
-        json.dump(resume_data, f, indent=4)
     
-    print(f"Resume file created: {resume_file}") 
+    with open(resume_file, 'w') as f:
+        json.dump(resume_data, f, indent=2)
+    
+    print(f"Resume file created: {resume_file}")
+    return resume_data 
+
 
 def load_resume(resume_file):
     """
