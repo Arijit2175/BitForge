@@ -4,6 +4,7 @@ from read_torrent import read_torrent_file
 from my_server import server
 from parallel_downloader import download_file
 from register_to_tracker import register_with_tracker
+from get_available_chunks import get_available_chunks
 
 def start_peer_server(peer_port, torrent_metadata):
     server(peer_port, torrent_metadata)
@@ -19,8 +20,12 @@ def main():
     args = parser.parse_args()
 
     torrent_metadata = read_torrent_file(args.torrent)
+    file_name = torrent_metadata['file_name']
+    chunk_hashes = torrent_metadata['chunk_hashes']
 
-    register_with_tracker(args.tracker_ip, args.tracker_port, args.port, torrent_metadata)
+    available_chunks = get_available_chunks(file_name, chunk_hashes)
+
+    register_with_tracker(args.tracker_ip, args.tracker_port, args.port, file_name, available_chunks)
 
     server_thread = threading.Thread(target=start_peer_server, args=(args.port, torrent_metadata))
     server_thread.daemon = True
