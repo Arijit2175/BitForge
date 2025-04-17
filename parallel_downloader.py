@@ -3,7 +3,7 @@ import threading
 import json
 from get_peers_from_tracker import get_peers_for_chunk
 from download import download_chunk
-from verification import verify_file
+from verification import verify_file, verify_chunk
 from resume import generate_resume  
 
 def download_file(tracker_ip, tracker_port, torrent_metadata, output_dir="."):
@@ -55,7 +55,7 @@ def download_file(tracker_ip, tracker_port, torrent_metadata, output_dir="."):
                 chunk_file_path = os.path.join(output_dir, f"chunk_{chunk_index}_{file_name}")
                 with open(chunk_file_path, 'wb') as f:
                     f.write(received_data)
-                if verify_file(chunk_file_path, chunk_hashes[chunk_index], total_chunks, chunk_hashes):
+                if verify_chunk(chunk_file_path, chunk_hashes[chunk_index], total_chunks, chunk_hashes):
                     print(f"Chunk {chunk_index} verified and saved to {chunk_file_path}.")
                     update_resume(chunk_index)
                     return
