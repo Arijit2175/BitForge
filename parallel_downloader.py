@@ -72,6 +72,7 @@ def download_file(tracker_ip, tracker_port, torrent_metadata, output_dir="."):
 
         print(f"All attempts failed for chunk {chunk_index}.")
 
+    semaphore = threading.Semaphore(5)  
 
     threads = []
 
@@ -99,5 +100,3 @@ def download_file(tracker_ip, tracker_port, torrent_metadata, output_dir="."):
         os.remove(resume_path)
     else:
         print("File not fully downloaded yet. Resume next time to continue.")
-
-
