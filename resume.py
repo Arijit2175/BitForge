@@ -4,9 +4,12 @@ import json
 def generate_resume(file_name, chunk_hashes, chunk_size, output_dir):
     """
     Writes a resume file to track which chunks have been downloaded.
-    Returns the resume data.
+    Returns the resume data, including chunk size information for future use.
     """
-    resume_data = {str(i): False for i in range(len(chunk_hashes))} 
+    resume_data = {
+        "chunk_size": chunk_size,  
+        "chunks": {str(i): False for i in range(len(chunk_hashes))} 
+    }
 
     resume_file = os.path.join(output_dir, f"{file_name}.resume.json")
 
@@ -15,6 +18,7 @@ def generate_resume(file_name, chunk_hashes, chunk_size, output_dir):
 
     print(f"Resume file created: {resume_file}")
     return resume_data  
+
 
 def load_resume(resume_file):
     """
