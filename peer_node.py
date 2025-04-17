@@ -23,7 +23,7 @@ def main():
 
     torrent_metadata = read_torrent_file(args.torrent)
 
-    available_chunks = get_available_chunks(torrent_metadata['file_name'], torrent_metadata['chunk_hashes'])
+    available_chunks = get_available_chunks(torrent_metadata['file_name'], torrent_metadata['chunk_hashes'], args.output_dir)
 
     register_with_tracker(args.tracker_ip, args.tracker_port, torrent_metadata['file_name'], args.ip, args.port, available_chunks)
 
