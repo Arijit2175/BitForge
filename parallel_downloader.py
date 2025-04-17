@@ -29,12 +29,12 @@ def download_file(tracker_ip, tracker_port, torrent_metadata, output_dir="."):
 
     def update_resume(chunk_index):
         with resume_lock:
-            resume_data[str(chunk_index)] = True
+            resume_data["chunks"][str(chunk_index)] = True
             with open(resume_path, 'w') as f:
                 json.dump(resume_data, f, indent=2)
 
     def download_worker(chunk_index):
-        if str(chunk_index) in resume_data and resume_data[str(chunk_index)]:
+        if resume_data["chunks"].get(str(chunk_index)):
             print(f"Skipping chunk {chunk_index} (already downloaded and verified).")
             return
 
@@ -84,7 +84,7 @@ def download_file(tracker_ip, tracker_port, torrent_metadata, output_dir="."):
 
     print("All chunks attempted.")
 
-    if all(resume_data.get(str(i)) for i in range(total_chunks)):
+    if all(resume_data["chunks"].get(str(i)) for i in range(total_chunks)):
         output_file_path = os.path.join(output_dir, file_name)
         with open(output_file_path, 'wb') as f:
             for i in range(total_chunks):
@@ -98,4 +98,5 @@ def download_file(tracker_ip, tracker_port, torrent_metadata, output_dir="."):
         os.remove(resume_path)
     else:
         print("File not fully downloaded yet. Resume next time to continue.")
+
 
