@@ -17,8 +17,11 @@ def register_peer():
         if not all([file_name, ip, port, chunks]):
             return jsonify({"error": "Missing required fields"}), 400
 
-        peer = (ip, port)
-        peer_chunk_map[peer] = chunks
+        peer = (ip, port)  
+        if peer in peer_chunk_map:
+            peer_chunk_map[peer].extend(chunks)
+        else:
+            peer_chunk_map[peer] = chunks
 
         print(f"Registered peer {peer} with chunks {chunks}")
         print(f"Current peer_chunk_map: {peer_chunk_map}")
