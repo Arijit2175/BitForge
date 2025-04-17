@@ -1,6 +1,18 @@
 import hashlib
 import os
 
+def verify_chunk(chunk_path, expected_hash):
+    with open(chunk_path, 'rb') as f:
+        data = f.read()
+        actual_hash = hashlib.sha256(data).hexdigest()
+
+        if actual_hash == expected_hash:
+            print(f"Verified chunk at {chunk_path}")
+            return True
+        else:
+            print(f"Hash mismatch for {chunk_path}")
+            return False
+
 def verify_file(file_name, chunk_size, total_chunks, chunk_hashes):
     reconstructed_file_size = chunk_size * total_chunks  
 
