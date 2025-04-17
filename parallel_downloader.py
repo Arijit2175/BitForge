@@ -23,7 +23,8 @@ def download_file(tracker_ip, tracker_port, torrent_metadata, output_dir="."):
             resume_data = json.load(f)
             print(f"Loaded resume metadata from {resume_path}")
     else:
-        resume_data = generate_resume(file_name, chunk_hashes, chunk_size, output_dir)
+        chunk_status = [False] * total_chunks
+        resume_data = generate_resume(resume_path, chunk_status, total_chunks)
 
     resume_lock = threading.Lock()
 
