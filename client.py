@@ -28,6 +28,9 @@ def register_with_tracker(tracker_ip, tracker_port, file_name, ip, port, availab
         print("Error during registration:", e)
 
 def generate_resume_file(torrent_metadata, output_dir="."):
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
+    
     file_name = torrent_metadata['file_name']
     chunk_hashes = torrent_metadata['chunk_hashes']
     chunk_size = torrent_metadata['chunk_size']
@@ -51,32 +54,33 @@ def client(tracker_ip, tracker_port, torrent_metadata):
     available_chunks = list(map(int, input(f"Enter the chunk indices you have (e.g. 0,1,2): ").split(',')))
     register_with_tracker(tracker_ip, tracker_port, file_name, ip, port, available_chunks)
 
-    while True:
-        print("\nMenu:")
-        print("1. Download multiple chunks in parallel")
-        print("2. Generate resume file")
-        print("3. Exit")
+    try:
+        while True:
+            print("\nMenu:")
+            print("1. Download multiple chunks in parallel")
+            print("2. Generate resume file")
+            print("3. Exit")
 
-        user_input = input("Choose an option (1-3): ")
+            user_input = input("Choose an option (1-3): ")
 
-        if user_input == '1':
-            output_file_path = input("Enter the output file path to save the reconstructed file: ")
-            print("Downloading multiple chunks in parallel...")
-            download_file(tracker_ip, tracker_port, torrent_metadata, output_file_path)
+            if user_input == '1':
+                output_file_path = input("Enter the output file path to save the reconstructed file: ")
+                print("Downloading multiple chunks in parallel...")
+                download_file(tracker_ip, tracker_port, torrent_metadata, output_file_path)
 
-        elif user_input == '2':
-            output_dir = input("Enter the output directory to save the resume: ")
-            print("Generating resume file...")
-            generate_resume_file(torrent_metadata, output_dir)
-        
-        elif user_input == '3':
-            print("Exiting client...")
-            break 
+            elif user_input == '2':
+                output_dir = input("Enter the output directory to save the resume: ")
+                print("Generating resume file...")
+                generate_resume_file(torrent_metadata, output_dir)
+            
+            elif user_input == '3':
+                print("Exiting client...")
+                break 
 
-        else:
-            print("Invalid option. Please choose a valid option between 1 and 3.")
-
-    print("Client disconnected.")
+            else:
+                print("Invalid option. Please choose a valid option between 1 and 3.")
+    finally:
+        print("Client disconnected.")
 
 if __name__ == "__main__":
     tracker_input = input("Enter the tracker address (e.g., 127.0.0.1 or http://127.0.0.1:9000): ")
