@@ -4,7 +4,8 @@ import json
 from get_peers_from_tracker import get_peers_for_chunk
 from download import download_chunk
 from verification import verify_file
-from resume import generate_resume  
+from resume import generate_resume
+import time 
 
 def download_file(tracker_ip, tracker_port, torrent_metadata, output_dir="."):
     file_name = torrent_metadata['file_name']
