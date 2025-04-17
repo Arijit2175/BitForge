@@ -1,4 +1,5 @@
 import threading
+import socket
 import argparse
 from read_torrent import read_torrent_file
 from my_server import server
@@ -23,7 +24,9 @@ def main():
 
     available_chunks = get_available_chunks(torrent_metadata['file_name'], torrent_metadata['chunk_hashes'], args.output_dir)
 
-    register_with_tracker(args.tracker_ip, args.tracker_port, args.port, torrent_metadata['file_name'], available_chunks)
+    ip = socket.gethostbyname(socket.gethostname())
+
+    register_with_tracker(args.tracker_ip, args.tracker_port, torrent_metadata['file_name'], ip, args.port, available_chunks)
 
     server_thread = threading.Thread(target=start_peer_server, args=(args.port, torrent_metadata))
     server_thread.daemon = True
