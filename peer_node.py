@@ -20,12 +20,10 @@ def main():
     args = parser.parse_args()
 
     torrent_metadata = read_torrent_file(args.torrent)
-    file_name = torrent_metadata['file_name']
-    chunk_hashes = torrent_metadata['chunk_hashes']
 
-    available_chunks = get_available_chunks(file_name, chunk_hashes)
+    available_chunks = get_available_chunks(torrent_metadata['file_name'], torrent_metadata['chunk_hashes'], args.output_dir)
 
-    register_with_tracker(args.tracker_ip, args.tracker_port, args.port, file_name, available_chunks)
+    register_with_tracker(args.tracker_ip, args.tracker_port, args.port, torrent_metadata['file_name'], available_chunks)
 
     server_thread = threading.Thread(target=start_peer_server, args=(args.port, torrent_metadata))
     server_thread.daemon = True
@@ -34,6 +32,7 @@ def main():
     download_file(args.tracker_ip, args.tracker_port, torrent_metadata, args.output_dir)
 
     print("Peer node has finished its download task.")
+
 
 if __name__ == "__main__":
     main()
