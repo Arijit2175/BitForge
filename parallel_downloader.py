@@ -33,51 +33,53 @@ def download_file(tracker_ip, tracker_port, torrent_metadata, output_dir="."):
             with open(resume_path, 'w') as f:
                 json.dump(resume_data, f, indent=2)
 
-    def download_worker(chunk_index):
-        if resume_data["chunks"].get(str(chunk_index)):
-            print(f"Skipping chunk {chunk_index} (already downloaded and verified).")
-            return
+    def download_worker(chunk_index, semaphore):
+        with semaphore:
+            if resume_data["chunks"].get(str(chunk_index)):
+                print(f"Skipping chunk {chunk_index} (already downloaded and verified).")
+                return
 
-        print(f"Requesting chunk {chunk_index}")
-        peers = get_peers_for_chunk(tracker_ip, tracker_port, file_name, chunk_index)
+            print(f"Requesting chunk {chunk_index}")
+            peers = get_peers_for_chunk(tracker_ip, tracker_port, file_name, chunk_index)
 
-        if not peers:
-            print(f"No peers found for chunk {chunk_index}.")
-            return
+            if not peers:
+                print(f"No peers found for chunk {chunk_index}.")
+                return
 
-        print(f"Peers with chunk {chunk_index}: {peers}")
+            print(f"Peers with chunk {chunk_index}: {peers}")
 
-        for peer in peers:
-            peer_ip = peer['ip']
-            peer_port = peer['port']
-            print(f"Attempting to download chunk {chunk_index} from {peer_ip}:{peer_port}")
-    
-            start_time = time.time()
-            received_data = download_chunk(peer_ip, peer_port, chunk_index, chunk_size, file_name, chunk_hashes[chunk_index])
-            duration = time.time() - start_time
+            for peer in peers:
+                peer_ip = peer['ip']
+                peer_port = peer['port']
+                print(f"Attempting to download chunk {chunk_index} from {peer_ip}:{peer_port}")
+        
+                start_time = time.time()
+                received_data = download_chunk(peer_ip, peer_port, chunk_index, chunk_size, file_name, chunk_hashes[chunk_index])
+                duration = time.time() - start_time
 
-            if received_data:
-                chunk_file_path = os.path.join(output_dir, f"chunk_{chunk_index}_{file_name}")
-                with open(chunk_file_path, 'wb') as f:
-                    f.write(received_data)
+                if received_data:
+                    chunk_file_path = os.path.join(output_dir, f"chunk_{chunk_index}_{file_name}")
+                    with open(chunk_file_path, 'wb') as f:
+                        f.write(received_data)
 
-                if verify_file(chunk_file_path, chunk_hashes[chunk_index], total_chunks, chunk_hashes):
-                    print(f"Chunk {chunk_index} verified and saved to {chunk_file_path} in {duration:.2f} seconds.")
-                    update_resume(chunk_index)
-                    return
+                    if verify_file(chunk_file_path, chunk_hashes[chunk_index], total_chunks, chunk_hashes):
+                        print(f"Chunk {chunk_index} verified and saved to {chunk_file_path} in {duration:.2f} seconds.")
+                        update_resume(chunk_index)
+                        return
+                    else:
+                        print(f"Chunk {chunk_index} failed verification (after {duration:.2f} seconds).")
                 else:
-                    print(f"Chunk {chunk_index} failed verification (after {duration:.2f} seconds).")
-            else:
-                print(f"Failed to download chunk {chunk_index} from {peer_ip}:{peer_port} after {duration:.2f} seconds")
+                    print(f"Failed to download chunk {chunk_index} from {peer_ip}:{peer_port} after {duration:.2f} seconds")
 
-        print(f"All attempts failed for chunk {chunk_index}.")
+            print(f"All attempts failed for chunk {chunk_index}.")
+
 
     semaphore = threading.Semaphore(5)  
 
     threads = []
 
     for i in range(total_chunks):
-        t = threading.Thread(target=download_worker, args=(i,))
+        t = threading.Thread(target=download_worker, args=(i, semaphore))  
         threads.append(t)
         t.start()
 
