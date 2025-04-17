@@ -1,17 +1,20 @@
 import os
 import json
 
-def generate_resume(resume_file, chunk_status, total_chunks):
+def generate_resume(file_name, chunk_hashes, chunk_size, output_dir):
     """
     Writes a resume file to track which chunks have been downloaded.
+    Returns the resume data.
     """
-    data = {
-        "total_chunks": total_chunks,
-        "downloaded_chunks": list(chunk_status)  
-    }
+    resume_data = {str(i): False for i in range(len(chunk_hashes))} 
+
+    resume_file = os.path.join(output_dir, f"{file_name}.resume.json")
+
     with open(resume_file, 'w') as f:
-        json.dump(data, f, indent=4)
-    print(f"Resume file updated: {resume_file}")
+        json.dump(resume_data, f, indent=4)
+
+    print(f"Resume file created: {resume_file}")
+    return resume_data  
 
 def load_resume(resume_file):
     """
