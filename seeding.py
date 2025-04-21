@@ -30,7 +30,7 @@ def upload_chunks(file_path, chunk_size, output_dir):
 
     return chunk_hashes
 
-def start_seeding(file_path, peer_ip="127.0.0.1", peer_port=5000, chunk_size=1024*1024, output_dir="shared_chunks", tracker_ip="127.0.0.1", tracker_port=8000):
+def start_seeding(file_path, peer_ip="127.0.0.1", peer_port=5000, chunk_size=1024*1024, output_dir="shared_chunks", tracker_ip="127.0.0.1", tracker_port=9000):
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
 
