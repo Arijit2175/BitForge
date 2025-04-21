@@ -1,4 +1,5 @@
 import socket
+import os
 
 def seeding_server(peer_ip, peer_port, file_name, chunk_size, chunk_hashes, output_dir="."):
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server_socket:
