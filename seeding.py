@@ -1,6 +1,8 @@
 import os
 import hashlib
 import threading
+import signal
+import sys
 from upload_chunks import seeding_server
 from register_seeder import register_seeder_to_tracker
 
@@ -30,6 +32,10 @@ def upload_chunks(file_path, chunk_size, output_dir):
 
     return chunk_hashes
 
+def shutdown_gracefully(signal, frame):
+    print("\nGracefully shutting down...")
+    sys.exit(0)  
+
 def start_seeding(file_path, peer_ip="127.0.0.1", peer_port=5000, chunk_size=1024*1024, output_dir="shared_chunks", tracker_ip="127.0.0.1", tracker_port=9000):
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
@@ -44,13 +50,19 @@ def start_seeding(file_path, peer_ip="127.0.0.1", peer_port=5000, chunk_size=102
     register_seeder_to_tracker(tracker_ip, tracker_port, file_name, peer_ip, peer_port)
 
     print(f"Starting seeder server on {peer_ip}:{peer_port}...")
-    threading.Thread(
+
+    seeder_thread = threading.Thread(
         target=seeding_server,
         args=(peer_ip, peer_port, file_name, chunk_size, chunk_hashes, output_dir),
         daemon=True
-    ).start()
+    )
+    seeder_thread.start()
 
     print("Seeder is now live and serving chunks.")
+
+    signal.signal(signal.SIGINT, shutdown_gracefully)
+
+    seeder_thread.join()
 
 if __name__ == "__main__":
     file_path = input("Enter path to the file you want to seed: ")
