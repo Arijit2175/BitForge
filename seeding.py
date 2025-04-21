@@ -48,7 +48,7 @@ def start_seeding(file_path, peer_ip="127.0.0.1", peer_port=5000, chunk_size=102
     file_name = os.path.basename(file_path)
 
     print("Registering seeder with tracker...")
-    register_seeder_to_tracker(tracker_ip, tracker_port, file_name, peer_ip, peer_port, chunk_hashes)
+    register_seeder_to_tracker(tracker_ip, tracker_port, file_name, peer_ip, peer_port, list(range(len(chunk_hashes))))
 
     print(f"Starting seeder server on {peer_ip}:{peer_port}...")
 
