@@ -58,11 +58,11 @@ def start_seeding(file_path, peer_ip="127.0.0.1", peer_port=5000, chunk_size=102
     )
     seeder_thread.start()
 
-    print("Seeder is now live and serving chunks.")
+    print("Seeder is now live and serving chunks. Press Ctrl+C to stop.")
 
     signal.signal(signal.SIGINT, shutdown_gracefully)
 
-    seeder_thread.join()
+    signal.pause()
 
 if __name__ == "__main__":
     file_path = input("Enter path to the file you want to seed: ")
