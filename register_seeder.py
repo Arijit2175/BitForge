@@ -8,9 +8,25 @@ def register_seeder_to_tracker(tracker_ip, tracker_port, file_name, peer_ip, pee
         "peer_ip": peer_ip,
         "peer_port": peer_port
     }
-    
-    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as tracker_socket:
-        tracker_socket.connect((tracker_ip, tracker_port))
-        tracker_socket.send(json.dumps(data).encode())
-        response = tracker_socket.recv(1024)
-        print(f"Tracker response: {response.decode()}")
+
+    try:
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as tracker_socket:
+            tracker_socket.settimeout(5)  
+            
+            tracker_socket.connect((tracker_ip, tracker_port))
+            
+            tracker_socket.send(json.dumps(data).encode())
+            print(f"Sent registration data to tracker: {data}")
+
+            response = tracker_socket.recv(1024).decode()
+
+            if response:
+                print(f"Tracker response: {response}")
+            else:
+                print("Error: No response from tracker.")
+
+    except (ConnectionRefusedError, TimeoutError) as e:
+        print(f"Connection error: {e}")
+    except Exception as e:
+        print(f"Unexpected error: {e}")
+
