@@ -1,7 +1,9 @@
-import socket
+import requests
 import json
 
 def register_seeder_to_tracker(tracker_ip, tracker_port, file_name, peer_ip, peer_port, chunks):
+    url = f"http://{tracker_ip}:{tracker_port}/register"
+    
     data = {
         "file_name": file_name,
         "ip": peer_ip,
@@ -9,11 +11,15 @@ def register_seeder_to_tracker(tracker_ip, tracker_port, file_name, peer_ip, pee
         "chunks": chunks
     }
 
+    headers = {'Content-Type': 'application/json'}
+
     try:
-        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as tracker_socket:
-            tracker_socket.connect((tracker_ip, tracker_port))
-            tracker_socket.sendall(json.dumps(data).encode())
-            response = tracker_socket.recv(1024)
-            print(f"Tracker response: {response.decode()}")
-    except Exception as e:
-        print(f"Failed to register with tracker: {e}")
+        response = requests.post(url, json=data, headers=headers, timeout=10)
+        if response.status_code == 200:
+            print(f"Tracker response: {response.json()['message']}")
+        else:
+            print(f"Failed to register with tracker: {response.text}")
+    except requests.exceptions.Timeout:
+        print("Connection timeout! Tracker is not responding within the time limit.")
+    except requests.exceptions.RequestException as e:
+        print(f"Error registering seeder to tracker: {e}")
