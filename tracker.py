@@ -19,9 +19,9 @@ def register_peer():
 
         peer = (ip, port)  
         if peer in peer_chunk_map:
-            peer_chunk_map[peer].extend(chunks)
+            peer_chunk_map[peer].update(chunks)  
         else:
-            peer_chunk_map[peer] = chunks
+            peer_chunk_map[peer] = set(chunks)  
 
         print(f"Registered peer {peer} with chunks {chunks}")
         print(f"Current peer_chunk_map: {peer_chunk_map}")
