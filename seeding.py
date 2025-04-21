@@ -3,6 +3,7 @@ import hashlib
 import threading
 import signal
 import sys
+import time
 from upload_chunks import seeding_server
 from register_seeder import register_seeder_to_tracker
 
@@ -47,7 +48,7 @@ def start_seeding(file_path, peer_ip="127.0.0.1", peer_port=5000, chunk_size=102
     file_name = os.path.basename(file_path)
 
     print("Registering seeder with tracker...")
-    register_seeder_to_tracker(tracker_ip, tracker_port, file_name, peer_ip, peer_port)
+    register_seeder_to_tracker(tracker_ip, tracker_port, file_name, peer_ip, peer_port, chunk_hashes)
 
     print(f"Starting seeder server on {peer_ip}:{peer_port}...")
 
@@ -61,8 +62,11 @@ def start_seeding(file_path, peer_ip="127.0.0.1", peer_port=5000, chunk_size=102
     print("Seeder is now live and serving chunks. Press Ctrl+C to stop.")
 
     signal.signal(signal.SIGINT, shutdown_gracefully)
-
-    signal.pause()
+    try:
+        while True:
+            time.sleep(1)
+    except KeyboardInterrupt:
+        shutdown_gracefully(None, None)
 
 if __name__ == "__main__":
     file_path = input("Enter path to the file you want to seed: ")
