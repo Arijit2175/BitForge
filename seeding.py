@@ -70,4 +70,5 @@ def start_seeding(file_path, peer_ip="127.0.0.1", peer_port=5000, chunk_size=102
 
 if __name__ == "__main__":
     file_path = input("Enter path to the file you want to seed: ")
-    start_seeding(file_path)
+    peer_port = int(input("Enter the port number to use for seeding this file: "))
+    start_seeding(file_path, peer_port=peer_port)
