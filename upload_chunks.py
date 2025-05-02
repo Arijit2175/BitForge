@@ -18,7 +18,10 @@ def seeding_server(peer_ip, peer_port, file_name, chunk_size, chunk_hashes, outp
                     if os.path.exists(chunk_file_path):
                         with open(chunk_file_path, 'rb') as chunk_file:
                             chunk_data = chunk_file.read()
-                            peer_socket.send(chunk_data)
+                            chunk_size = len(chunk_data)
+                            peer_socket.send(str(chunk_data).encode())
+                            print(f"Sent chunk size for chunk {chunk_index}: {chunk_size}")
+                            peer_socket.sendall(chunk_data)
                             print(f"Sent chunk {chunk_index} to peer.")
                     else:
                         print(f"Chunk {chunk_index} not available for seeding.")
