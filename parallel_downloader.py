@@ -41,7 +41,7 @@ def download_file(tracker_ip, tracker_port, torrent_metadata, output_dir="."):
         peers = get_peers_for_chunk(tracker_ip, tracker_port, file_name, chunk_index)
 
         if not peers:
-            print(f"No peers found for chunk {chunk_index}.")
+            print(f"No peers found for chunk {chunk_index}. Retrying later.")
             return
 
         print(f"Peers with chunk {chunk_index}: {peers}")
@@ -60,18 +60,25 @@ def download_file(tracker_ip, tracker_port, torrent_metadata, output_dir="."):
                     update_resume(chunk_index)
                     return
                 else:
-                    print(f"Chunk {chunk_index} failed verification.")
+                    print(f"Chunk {chunk_index} failed verification. Retrying with another peer.")
             else:
                 print(f"Failed to download chunk {chunk_index} from {peer_ip}:{peer_port}")
 
-        print(f"All attempts failed for chunk {chunk_index}.")
-
+        print(f"All attempts failed for chunk {chunk_index}. Moving on to the next chunk.")
 
     threads = []
+    max_threads = 5 
+    active_threads = 0
 
     for i in range(total_chunks):
+        while active_threads >= max_threads:
+            for t in threads:
+                if not t.is_alive():
+                    active_threads -= 1
+                    threads.remove(t)
         t = threading.Thread(target=download_worker, args=(i,))
         threads.append(t)
+        active_threads += 1
         t.start()
 
     for t in threads:
