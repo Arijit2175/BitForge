@@ -1,22 +1,52 @@
 import requests
+import logging
+import time
 
-def get_peers_for_chunk(tracker_ip, tracker_port, file_name, chunk_index):
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+
+def get_peers_for_chunk(tracker_ip, tracker_port, file_name, chunk_index, retries=3, timeout=5):
+    """
+    Request the list of peers for a specific chunk from the tracker.
+    
+    :param tracker_ip: The IP address of the tracker server.
+    :param tracker_port: The port of the tracker server.
+    :param file_name: The name of the file for which the chunk is requested.
+    :param chunk_index: The index of the chunk being requested.
+    :param retries: The number of retries for failed requests.
+    :param timeout: The timeout for each request.
+    :return: List of peers or an empty list if no peers were found or an error occurred.
+    """
     url = f"http://{tracker_ip}:{tracker_port}/lookup"
     data = {
         "file_name": file_name,
         "chunk_index": chunk_index
     }
 
-    try:
-        response = requests.post(url, json=data)
-        if response.status_code == 200:
-            result = response.json()
-            peers = result.get("peers", [])
-            print(f"Peers with chunk {chunk_index}: {peers}")
-            return peers
-        else:
-            print(f"No peers found or error. Status: {response.status_code}, Message: {response.text}")
-            return []
-    except Exception as e:
-        print(f"Error during peer lookup: {e}")
-        return []
+    for attempt in range(retries):
+        try:
+            logging.info(f"Requesting peers for chunk {chunk_index} (attempt {attempt + 1}/{retries})...")
+            response = requests.post(url, json=data, timeout=timeout)
+            
+            if response.status_code == 200:
+                result = response.json()
+                peers = result.get("peers", [])
+                
+                if peers:
+                    logging.info(f"Found {len(peers)} peers for chunk {chunk_index}: {peers}")
+                else:
+                    logging.warning(f"No peers found for chunk {chunk_index}.")
+                
+                return peers
+            else:
+                logging.error(f"Tracker returned an error for chunk {chunk_index}: Status {response.status_code} - {response.text}")
+                return []
+        
+        except requests.exceptions.Timeout:
+            logging.error(f"Timeout while requesting peers for chunk {chunk_index}. Retrying...")
+        except requests.exceptions.RequestException as e:
+            logging.error(f"Error during peer lookup for chunk {chunk_index}: {e}")
+        
+        time.sleep(2)
+
+    logging.error(f"Failed to fetch peers for chunk {chunk_index} after {retries} attempts.")
+    return []
