@@ -67,19 +67,17 @@ def download_file(tracker_ip, tracker_port, torrent_metadata, output_dir="."):
         print(f"All attempts failed for chunk {chunk_index}. Moving on to the next chunk.")
 
     threads = []
-    max_threads = 5 
-    active_threads = 0
+    semaphore = threading.Semaphore(5)  
+
+    def download_worker_with_semaphore(chunk_index):
+        with semaphore:
+            download_worker(chunk_index)
 
     for i in range(total_chunks):
-        while active_threads >= max_threads:
-            for t in threads:
-                if not t.is_alive():
-                    active_threads -= 1
-                    threads.remove(t)
-        t = threading.Thread(target=download_worker, args=(i,))
+        t = threading.Thread(target=download_worker_with_semaphore, args=(i,))
         threads.append(t)
-        active_threads += 1
         t.start()
+
 
     for t in threads:
         t.join()
