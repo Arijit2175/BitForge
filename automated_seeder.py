@@ -4,7 +4,7 @@ import threading
 import json
 import time
 from read_torrent import read_torrent_file
-from register_seeder import register_seeder_to_tracker  # You already have this
+from register_seeder import register_seeder_to_tracker 
 from upload_chunks import seeding_server
 
 SEEDING_FOLDER = "seeding_folder"
@@ -39,3 +39,14 @@ def seed_all_torrents():
             else:
                 print(f"[!] No chunks available for {file_name}. Skipping.")
 
+def main():
+    seed_all_torrents()
+
+    seeding_server(SEEDER_IP, SEEDER_PORT, None, None, None, output_dir=SEEDING_FOLDER)
+
+if __name__ == "__main__":
+    try:
+        print("[*] Starting Seeder Daemon...")
+        main()
+    except KeyboardInterrupt:
+        print("\n[!] Seeder daemon shutting down.")
