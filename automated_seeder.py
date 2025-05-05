@@ -1,53 +1,49 @@
 import os
-import socket
-import threading
-import json
-import time
-from read_torrent import read_torrent_file
-from register_seeder import register_seeder_to_tracker 
-from upload_chunks import seeding_server
+import hashlib
 
-SEEDING_FOLDER = "seeding_folder"
-os.makedirs(SEEDING_FOLDER, exist_ok=True)
-SEEDER_IP = "127.0.0.1"
-SEEDER_PORT = 5000
-TRACKER_IP = "127.0.0.1"
-TRACKER_PORT = 9000
+def create_chunks(file_path, chunk_size, seeding_folder):
+    with open(file_path, 'rb') as f:
+        file_data = f.read()
+        total_chunks = len(file_data) // chunk_size
+        if len(file_data) % chunk_size != 0:
+            total_chunks += 1
+        
+        chunk_hashes = []
 
-def find_available_chunks(file_name, total_chunks, output_dir="."):
-    available = []
-    for i in range(total_chunks):
-        chunk_path = os.path.join(output_dir, f"chunk_{i}_{file_name}")
-        if os.path.exists(chunk_path):
-            available.append(i)
-    return available
+        for i in range(total_chunks):
+            chunk = file_data[i * chunk_size: (i + 1) * chunk_size]
+            chunk_hash = hashlib.sha256(chunk).hexdigest()
+            chunk_file_name = f"chunk_{i}_{os.path.basename(file_path)}"
+            chunk_file_path = os.path.join(seeding_folder, chunk_file_name)
+            
+            with open(chunk_file_path, 'wb') as chunk_file:
+                chunk_file.write(chunk)
 
-def seed_all_torrents():
-    for fname in os.listdir(SEEDING_FOLDER):
-        if fname.endswith(".torrent"):
-            torrent_path = os.path.join(SEEDING_FOLDER, fname)
-            metadata = read_torrent_file(torrent_path)
+            chunk_hashes.append(chunk_hash)
 
-            file_name = metadata["file_name"]
-            chunk_hashes = metadata["chunk_hashes"]
-            total_chunks = len(chunk_hashes)
+    return chunk_hashes
 
-            available_chunks = find_available_chunks(file_name, total_chunks, SEEDING_FOLDER)
+def start_seeder():
+    file_path = input("Enter the path of the file to seed: ")
+    seeding_folder = input("Enter the path for the seeding folder: ")
 
-            if available_chunks:
-                print(f"[+] Seeding {file_name} with chunks: {available_chunks}")
-                register_seeder_to_tracker(TRACKER_IP, TRACKER_PORT, file_name, SEEDER_IP, SEEDER_PORT, available_chunks)
-            else:
-                print(f"[!] No chunks available for {file_name}. Skipping.")
+    if not os.path.exists(seeding_folder):
+        os.makedirs(seeding_folder)
 
-def main():
-    seed_all_torrents()
+    if not os.path.exists(file_path):
+        print(f"Error: The file {file_path} does not exist.")
+        return
 
-    seeding_server(SEEDER_IP, SEEDER_PORT, None, None, None, output_dir=SEEDING_FOLDER)
+    file_name = os.path.basename(file_path)
 
-if __name__ == "__main__":
-    try:
-        print("[*] Starting Seeder Daemon...")
-        main()
-    except KeyboardInterrupt:
-        print("\n[!] Seeder daemon shutting down.")
+    for chunk_index in range(1000):  
+        chunk_file_name = f"chunk_{chunk_index}_{file_name}"
+        chunk_file_path = os.path.join(seeding_folder, chunk_file_name)
+        if not os.path.exists(chunk_file_path):
+            print(f"Chunks missing, generating chunks for {file_name}...")
+            chunk_hashes = create_chunks(file_path, 1024 * 1024, seeding_folder)  
+            break
+    else:
+        print(f"Chunks already exist in {seeding_folder}. Ready to seed.")
+
+start_seeder()
