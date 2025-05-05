@@ -2,6 +2,10 @@ import os
 import hashlib
 import socket
 import threading
+import signal
+import sys
+
+running = True  
 
 def create_chunks(file_path, chunk_size, seeding_folder):
     with open(file_path, 'rb') as f:
@@ -9,7 +13,7 @@ def create_chunks(file_path, chunk_size, seeding_folder):
         total_chunks = len(file_data) // chunk_size
         if len(file_data) % chunk_size != 0:
             total_chunks += 1
-        
+
         chunk_hashes = []
 
         for i in range(total_chunks):
@@ -17,7 +21,7 @@ def create_chunks(file_path, chunk_size, seeding_folder):
             chunk_hash = hashlib.sha256(chunk).hexdigest()
             chunk_file_name = f"chunk_{i}_{os.path.basename(file_path)}"
             chunk_file_path = os.path.join(seeding_folder, chunk_file_name)
-            
+
             with open(chunk_file_path, 'wb') as chunk_file:
                 chunk_file.write(chunk)
 
@@ -30,21 +34,21 @@ def handle_peer(peer_socket, peer_ip, peer_port, file_name, chunk_size, chunk_ha
         print(f"Connected to peer {peer_ip}:{peer_port}.")
         request = peer_socket.recv(1024).decode().strip()
 
-        print(f"Received request: {request}")  
+        print(f"Received request: {request}")
         if request.startswith('GET_CHUNK'):
             try:
                 parts = request.split(" ")
                 if len(parts) != 3:
                     print("Invalid request format.")
                     return
-                
-                chunk_index = int(parts[1])  
-                file_name_from_request = parts[2]  
+
+                chunk_index = int(parts[1])
+                file_name_from_request = parts[2]
 
                 if file_name_from_request != file_name:
                     print(f"File name mismatch: expected {file_name}, got {file_name_from_request}.")
                     return
-                
+
                 chunk_filename = f"chunk_{chunk_index}_{file_name}"
                 chunk_file_path = os.path.join(seeding_folder, chunk_filename)
 
@@ -53,8 +57,8 @@ def handle_peer(peer_socket, peer_ip, peer_port, file_name, chunk_size, chunk_ha
                         chunk_data = chunk_file.read()
                         chunk_len = len(chunk_data)
 
-                        peer_socket.send(f"{chunk_len}".encode().ljust(16, b'\0')) 
-                        peer_socket.sendall(chunk_data)  
+                        peer_socket.send(f"{chunk_len}".encode().ljust(16, b'\0'))
+                        peer_socket.sendall(chunk_data)
                         print(f"Sent chunk {chunk_index} of size {chunk_len} to peer.")
                 else:
                     print(f"Chunk {chunk_index} not available for seeding.")
@@ -63,15 +67,30 @@ def handle_peer(peer_socket, peer_ip, peer_port, file_name, chunk_size, chunk_ha
         else:
             print(f"Invalid request: {request}")
 
+def signal_handler(sig, frame):
+    global running
+    print("\nShutting down seeder gracefully...")
+    running = False
+    sys.exit(0)
+
+signal.signal(signal.SIGINT, signal_handler)  
+
 def start_seeding_server(peer_ip, peer_port, file_name, chunk_size, chunk_hashes, seeding_folder):
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server_socket:
         server_socket.bind((peer_ip, peer_port))
         server_socket.listen(5)
-        print(f"Seeding server started on {peer_ip}:{peer_port}")
-        
-        while True:
-            peer_socket, _ = server_socket.accept()
-            threading.Thread(target=handle_peer, args=(peer_socket, peer_ip, peer_port, file_name, chunk_size, chunk_hashes, seeding_folder)).start()
+        server_socket.settimeout(1.0)  # Allows loop to periodically check `running`
+        print(f"Seeding server started on {peer_ip}:{peer_port} (Press Ctrl+C to stop)")
+
+        while running:
+            try:
+                peer_socket, _ = server_socket.accept()
+                threading.Thread(
+                    target=handle_peer,
+                    args=(peer_socket, peer_ip, peer_port, file_name, chunk_size, chunk_hashes, seeding_folder)
+                ).start()
+            except socket.timeout:
+                continue  
 
 def start_seeder():
     file_path = input("Enter the path of the file to seed: ")
@@ -105,9 +124,9 @@ def start_seeder():
                     chunk_hash = hashlib.sha256(chunk_data).hexdigest()
                     chunk_hashes.append(chunk_hash)
 
-    peer_ip = '127.0.0.1'  
-    peer_port = 5000 
-    chunk_size = 1024 * 1024  
+    peer_ip = '127.0.0.1'
+    peer_port = 5000
+    chunk_size = 1024 * 1024
     start_seeding_server(peer_ip, peer_port, file_name, chunk_size, chunk_hashes, seeding_folder)
 
 start_seeder()
