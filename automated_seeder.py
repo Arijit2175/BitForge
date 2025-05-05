@@ -37,7 +37,7 @@ def handle_peer(peer_socket, peer_ip, peer_port, file_name, chunk_size, chunk_ha
                     print("Invalid request format.")
                     return
                 
-                chunk_index = int(parts[1]) 
+                chunk_index = int(parts[1])  
                 file_name_from_request = parts[2]  
 
                 if file_name_from_request != file_name:
@@ -52,7 +52,7 @@ def handle_peer(peer_socket, peer_ip, peer_port, file_name, chunk_size, chunk_ha
                         chunk_data = chunk_file.read()
                         chunk_len = len(chunk_data)
 
-                        peer_socket.send(f"{chunk_len}".encode().ljust(16))  
+                        peer_socket.send(f"{chunk_len}".encode().ljust(16, b'\0'))  
                         peer_socket.sendall(chunk_data)  
                         print(f"Sent chunk {chunk_index} of size {chunk_len} to peer.")
                 else:
@@ -94,7 +94,15 @@ def start_seeder():
         print(f"Chunks generated successfully for {file_name}.")
     else:
         print(f"Chunks already exist in {seeding_folder}. Ready to seed.")
-        chunk_hashes = []  
+        chunk_hashes = []
+        for i in range(total_chunks):
+            chunk_filename = f"chunk_{i}_{file_name}"
+            chunk_file_path = os.path.join(seeding_folder, chunk_filename)
+            if os.path.exists(chunk_file_path):
+                with open(chunk_file_path, 'rb') as chunk_file:
+                    chunk_data = chunk_file.read()
+                    chunk_hash = hashlib.sha256(chunk_data).hexdigest()
+                    chunk_hashes.append(chunk_hash)
 
     peer_ip = '127.0.0.1'  
     peer_port = 5000 
