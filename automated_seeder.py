@@ -8,6 +8,7 @@ from register_seeder import register_seeder_to_tracker
 from upload_chunks import seeding_server
 
 SEEDING_FOLDER = "seeding_folder"
+os.makedirs(SEEDING_FOLDER, exist_ok=True)
 SEEDER_IP = "127.0.0.1"
 SEEDER_PORT = 5000
 TRACKER_IP = "127.0.0.1"
