@@ -28,8 +28,9 @@ def create_chunks(file_path, chunk_size, seeding_folder):
 def handle_peer(peer_socket, peer_ip, peer_port, file_name, chunk_size, chunk_hashes, seeding_folder):
     with peer_socket:
         print(f"Connected to peer {peer_ip}:{peer_port}.")
-        request = peer_socket.recv(1024).decode()
+        request = peer_socket.recv(1024).decode().strip()
 
+        print(f"Received request: {request}")  
         if request.startswith('GET_CHUNK'):
             try:
                 parts = request.split(" ")
@@ -52,7 +53,7 @@ def handle_peer(peer_socket, peer_ip, peer_port, file_name, chunk_size, chunk_ha
                         chunk_data = chunk_file.read()
                         chunk_len = len(chunk_data)
 
-                        peer_socket.send(f"{chunk_len}".encode().ljust(16, b'\0'))  
+                        peer_socket.send(f"{chunk_len}".encode().ljust(16, b'\0')) 
                         peer_socket.sendall(chunk_data)  
                         print(f"Sent chunk {chunk_index} of size {chunk_len} to peer.")
                 else:
