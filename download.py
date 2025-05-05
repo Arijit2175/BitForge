@@ -8,7 +8,7 @@ def download_chunk(peer_ip, peer_port, chunk_index, chunk_size, file_name, expec
         client_socket.settimeout(10)  
         client_socket.connect((peer_ip, peer_port))
 
-        client_socket.send(f"GET_CHUNK {chunk_index}{file_name}".encode())
+        client_socket.send(f"GET_CHUNK {chunk_index} {file_name}".encode())
 
         chunk_len_data = client_socket.recv(16).decode().strip()
         if not chunk_len_data.isdigit():
