@@ -25,6 +25,43 @@ def create_chunks(file_path, chunk_size, seeding_folder):
 
     return chunk_hashes
 
+def handle_peer(peer_socket, peer_ip, peer_port, file_name, chunk_size, chunk_hashes, seeding_folder):
+    with peer_socket:
+        print(f"Connected to peer {peer_ip}:{peer_port}.")
+        request = peer_socket.recv(1024).decode()
+
+        if request.startswith('GET_CHUNK'):
+            try:
+                parts = request.split(" ")
+                if len(parts) != 3:
+                    print("Invalid request format.")
+                    return
+                
+                chunk_index = int(parts[1]) 
+                file_name_from_request = parts[2]  
+
+                if file_name_from_request != file_name:
+                    print(f"File name mismatch: expected {file_name}, got {file_name_from_request}.")
+                    return
+                
+                chunk_filename = f"chunk_{chunk_index}_{file_name}"
+                chunk_file_path = os.path.join(seeding_folder, chunk_filename)
+
+                if os.path.exists(chunk_file_path):
+                    with open(chunk_file_path, 'rb') as chunk_file:
+                        chunk_data = chunk_file.read()
+                        chunk_len = len(chunk_data)
+
+                        peer_socket.send(f"{chunk_len}".encode().ljust(16))  
+                        peer_socket.sendall(chunk_data)  
+                        print(f"Sent chunk {chunk_index} of size {chunk_len} to peer.")
+                else:
+                    print(f"Chunk {chunk_index} not available for seeding.")
+            except Exception as e:
+                print(f"Error processing request: {e}")
+        else:
+            print(f"Invalid request: {request}")
+
 def start_seeding_server(peer_ip, peer_port, file_name, chunk_size, chunk_hashes, seeding_folder):
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server_socket:
         server_socket.bind((peer_ip, peer_port))
@@ -33,23 +70,7 @@ def start_seeding_server(peer_ip, peer_port, file_name, chunk_size, chunk_hashes
         
         while True:
             peer_socket, _ = server_socket.accept()
-            with peer_socket:
-                print("Connected to peer.")
-                request = peer_socket.recv(1024).decode()
-                if request.startswith('GET_CHUNK'):
-                    chunk_index = int(request.split(" ")[1])
-                    chunk_filename = f"chunk_{chunk_index}_{file_name}"
-                    chunk_file_path = os.path.join(seeding_folder, chunk_filename)
-                    if os.path.exists(chunk_file_path):
-                        with open(chunk_file_path, 'rb') as chunk_file:
-                            chunk_data = chunk_file.read()
-                            chunk_len = len(chunk_data)
-
-                            peer_socket.send(f"{chunk_len}".encode().ljust(16)) 
-                            peer_socket.sendall(chunk_data)  
-                            print(f"Sent chunk {chunk_index} of size {chunk_len} to peer.")
-                    else:
-                        print(f"Chunk {chunk_index} not available for seeding.")
+            threading.Thread(target=handle_peer, args=(peer_socket, peer_ip, peer_port, file_name, chunk_size, chunk_hashes, seeding_folder)).start()
 
 def start_seeder():
     file_path = input("Enter the path of the file to seed: ")
@@ -66,12 +87,14 @@ def start_seeder():
 
     existing_chunks = [f for f in os.listdir(seeding_folder) if f.startswith(f"chunk_")]
     total_chunks = len(existing_chunks)
+
     if total_chunks == 0:
         print(f"Chunks missing, generating chunks for {file_name}...")
         chunk_hashes = create_chunks(file_path, 1024 * 1024, seeding_folder)
         print(f"Chunks generated successfully for {file_name}.")
     else:
         print(f"Chunks already exist in {seeding_folder}. Ready to seed.")
+        chunk_hashes = []  
 
     peer_ip = '127.0.0.1'  
     peer_port = 5000 
