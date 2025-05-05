@@ -20,3 +20,22 @@ def find_available_chunks(file_name, total_chunks, output_dir="."):
         if os.path.exists(chunk_path):
             available.append(i)
     return available
+
+def seed_all_torrents():
+    for fname in os.listdir(SEEDING_FOLDER):
+        if fname.endswith(".torrent"):
+            torrent_path = os.path.join(SEEDING_FOLDER, fname)
+            metadata = read_torrent_file(torrent_path)
+
+            file_name = metadata["file_name"]
+            chunk_hashes = metadata["chunk_hashes"]
+            total_chunks = len(chunk_hashes)
+
+            available_chunks = find_available_chunks(file_name, total_chunks, SEEDING_FOLDER)
+
+            if available_chunks:
+                print(f"[+] Seeding {file_name} with chunks: {available_chunks}")
+                register_seeder_to_tracker(TRACKER_IP, TRACKER_PORT, file_name, SEEDER_IP, SEEDER_PORT, available_chunks)
+            else:
+                print(f"[!] No chunks available for {file_name}. Skipping.")
+
