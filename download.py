@@ -10,13 +10,14 @@ def download_chunk(peer_ip, peer_port, chunk_index, chunk_size, file_name, expec
 
         client_socket.send(f"GET_CHUNK {chunk_index} {file_name}".encode())
 
-        chunk_len_data = client_socket.recv(16).decode().strip()
-        if not chunk_len_data.isdigit():
-            print(f"Error: Invalid chunk length received from {peer_ip}:{peer_port}.")
+        chunk_len_data = client_socket.recv(16)
+        chunk_len_str = chunk_len_data.decode(errors="ignore").strip('\x00').strip()
+        if not chunk_len_str.isdigit():
+            print(f"Error: Invalid chunk length received from {peer_ip}:{peer_port}. Raw data: {chunk_len_data}")
             client_socket.close()
             return None
-        
-        chunk_len = int(chunk_len_data)
+
+        chunk_len = int(chunk_len_str)
 
         received_data = b""
         while len(received_data) < chunk_len:
