@@ -33,12 +33,18 @@ def download_file(tracker_ip, tracker_port, torrent_metadata, output_dir=".",
             with open(resume_path, 'w') as f:
                 json.dump(resume_data, f, indent=2)
 
+    semaphore = threading.Semaphore(5)  
+    threads = [] 
+
     def download_worker(chunk_index):
         if str(chunk_index) in resume_data and resume_data[str(chunk_index)]:
             print(f"Skipping chunk {chunk_index} (already downloaded and verified).")
             return
 
         print(f"Requesting chunk {chunk_index}")
+    
+        chunk_hash = chunk_hashes[chunk_index]
+    
         peers = get_peers_for_chunk(tracker_ip, tracker_port, file_name, chunk_index)
 
         if not peers:
@@ -51,12 +57,12 @@ def download_file(tracker_ip, tracker_port, torrent_metadata, output_dir=".",
             peer_ip = peer['ip']
             peer_port = peer['port']
             print(f"Attempting to download chunk {chunk_index} from {peer_ip}:{peer_port}")
-            received_data = download_chunk(peer_ip, peer_port, chunk_index, chunk_size, file_name, chunk_hashes[chunk_index])
+            received_data = download_chunk(peer_ip, peer_port, chunk_index, chunk_size, file_name, chunk_hash)
             if received_data:
                 chunk_file_path = os.path.join(output_dir, f"chunk_{chunk_index}_{file_name}")
                 with open(chunk_file_path, 'wb') as f:
                     f.write(received_data)
-                if verify_chunk(chunk_file_path, chunk_hashes[chunk_index]):
+                if verify_chunk(chunk_file_path, chunk_hash):
                     print(f"Chunk {chunk_index} verified and saved to {chunk_file_path}.")
                     update_resume(chunk_index)
                     if signal_progress:
@@ -68,12 +74,9 @@ def download_file(tracker_ip, tracker_port, torrent_metadata, output_dir=".",
                 print(f"Failed to download chunk {chunk_index} from {peer_ip}:{peer_port}")
 
         print(f"All attempts failed for chunk {chunk_index}. Moving on to the next chunk.")
-
-    threads = []
-    semaphore = threading.Semaphore(5)  
-
+  
     def download_worker_with_semaphore(chunk_index):
-        with semaphore:
+        with semaphore:  
             download_worker(chunk_index)
 
     for i in range(total_chunks):
