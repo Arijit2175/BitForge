@@ -79,3 +79,16 @@ class TorrentClientGUI(QWidget):
             if file_path:
                 self.label.setText(f"Selected File: {file_path}")
                 self.file_size = 10 * 1024 * 1024
+        
+        def start_download(self):
+            if not self.file_size:
+                self.status_bar.showMessage("Please select a file first.")
+                return
+
+            self.status_bar.showMessage("Starting download...")
+            self.download_thread = DownloadThread(self.file_size)
+            self.download_thread.update_progress.connect(self.update_progress)
+            self.download_thread.update_status.connect(self.update_status)
+            self.download_thread.start()
+
+        
