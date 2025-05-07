@@ -6,11 +6,11 @@ from PyQt5.QtWidgets import (
     QProgressBar, QFileDialog, QListWidget, QListWidgetItem, QMessageBox
 )
 from PyQt5.QtCore import Qt, pyqtSignal, QObject
-import json
+import bencodepy  
 from parallel_downloader import download_file  
 
 class DownloadSignals(QObject):
-    progress = pyqtSignal(int, int)  
+    progress = pyqtSignal(int, int) 
     complete = pyqtSignal(str)  
 
 class TorrentGUI(QWidget):
@@ -26,8 +26,8 @@ class TorrentGUI(QWidget):
         self.label.setStyleSheet("font-size: 20px; font-weight: bold; color: #333;")
         self.layout.addWidget(self.label)
 
-        self.file_select_btn = QPushButton("Select Torrent Info JSON")
-        self.file_select_btn.clicked.connect(self.select_torrent_info)
+        self.file_select_btn = QPushButton("Select .torrent File")
+        self.file_select_btn.clicked.connect(self.select_torrent_file)
         self.layout.addWidget(self.file_select_btn)
 
         self.chunk_list = QListWidget()
@@ -47,27 +47,42 @@ class TorrentGUI(QWidget):
         self.download_signals.progress.connect(self.update_chunk_status)
         self.download_signals.complete.connect(self.show_completion)
 
-        self.torrent_info_path = None
+        self.torrent_file_path = None
         self.total_chunks = 0
+        self.torrent_metadata = None  
 
-    def select_torrent_info(self):
-        file_path, _ = QFileDialog.getOpenFileName(self, "Select Torrent JSON", "", "JSON Files (*.json)")
+    def select_torrent_file(self):
+        file_path, _ = QFileDialog.getOpenFileName(self, "Select Torrent File", "", "Torrent Files (*.torrent)")
         if file_path:
-            self.torrent_info_path = file_path
+            self.torrent_file_path = file_path
             self.chunk_list.clear()
             self.label.setText(f"Loaded: {os.path.basename(file_path)}")
+            self.parse_torrent(file_path)
+
+    def parse_torrent(self, file_path):
+        try:
+            with open(file_path, 'rb') as f:
+                torrent_data = bencodepy.decode(f.read())
+                self.torrent_metadata = {
+                    'file_name': torrent_data[b'info'][b'name'].decode(),
+                    'chunk_size': 1024 * 1024,  
+                    'chunk_hashes': [x.hex() for x in torrent_data[b'info'][b'pieces']], 
+                    'tracker_ip': torrent_data[b'announce'].decode().split('/')[2],
+                    'tracker_port': 8000  
+                }
+                print(f"Parsed torrent: {self.torrent_metadata}")
+        except Exception as e:
+            print(f"Error parsing torrent file: {e}")
+            QMessageBox.warning(self, "Error", "Failed to parse torrent file.")
 
     def start_download(self):
-        if not self.torrent_info_path:
-            QMessageBox.warning(self, "No File", "Please select a torrent info file first.")
+        if not self.torrent_metadata:
+            QMessageBox.warning(self, "No File", "Please select a valid torrent file first.")
             return
 
         def run_download():
-            with open(self.torrent_info_path, 'r') as f:
-                torrent_metadata = json.load(f)
-
-            tracker_ip = torrent_metadata.get("tracker_ip", "127.0.0.1")
-            tracker_port = torrent_metadata.get("tracker_port", 8000)
+            tracker_ip = self.torrent_metadata['tracker_ip']
+            tracker_port = self.torrent_metadata['tracker_port']
 
             def signal_wrapper(chunk_index, total_chunks):
                 self.download_signals.progress.emit(chunk_index, total_chunks)
@@ -78,7 +93,7 @@ class TorrentGUI(QWidget):
             download_file(
                 tracker_ip,
                 tracker_port,
-                torrent_metadata,
+                self.torrent_metadata,
                 output_dir=".",
                 signal_progress=signal_wrapper,
                 signal_complete=complete_callback
@@ -107,3 +122,4 @@ if __name__ == "__main__":
     gui = TorrentGUI()
     gui.show()
     sys.exit(app.exec_())
+
