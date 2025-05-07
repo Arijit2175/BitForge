@@ -104,3 +104,9 @@ class TorrentClientGUI(QWidget):
 
         def update_status(self, status):
             self.status_bar.showMessage(status)
+        
+if __name__ == "__main__":
+    app = QApplication(sys.argv)
+    window = TorrentClientGUI()
+    window.show()
+    sys.exit(app.exec_())
