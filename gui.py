@@ -46,4 +46,7 @@ class TorrentClientGUI(QWidget):
         self.status_bar = QStatusBar()
         self.layout.addWidget(self.status_bar)
 
+        self.label = QLabel("No file selected")
+        self.layout.addWidget(self.label)
+
         
