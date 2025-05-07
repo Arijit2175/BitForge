@@ -26,4 +26,12 @@ class DownloadThread(QThread):
             self.update_status.emit("Download Complete!")
             self.update_progress.emit(100)
 
+    def pause(self):
+        self.running = False
+        self.update_status.emit("Download Paused")
+
+    def stop(self):
+        self.running = False
+        self.update_status.emit("Download Stopped")
+
     
