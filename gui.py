@@ -71,4 +71,7 @@ class TorrentClientGUI(QWidget):
 
         self.setLayout(self.layout)
 
+        self.download_thread = None
+        self.file_size = 0
+
         
