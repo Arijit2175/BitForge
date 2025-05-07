@@ -99,4 +99,8 @@ class TorrentClientGUI(QWidget):
             if self.download_thread:
                 self.download_thread.stop()
 
-        
+        def update_progress(self, progress):
+            self.progress_bar.setValue(progress)
+
+        def update_status(self, status):
+            self.status_bar.showMessage(status)
