@@ -4,9 +4,10 @@ import json
 from get_peers_from_tracker import get_peers_for_chunk
 from download import download_chunk
 from verification import verify_chunk
-from resume import generate_resume  
+from resume import generate_resume
 
-def download_file(tracker_ip, tracker_port, torrent_metadata, output_dir="."):
+def download_file(tracker_ip, tracker_port, torrent_metadata, output_dir=".",
+                  signal_progress=None, signal_complete=None):
     file_name = torrent_metadata['file_name']
     chunk_size = torrent_metadata['chunk_size']
     chunk_hashes = torrent_metadata['chunk_hashes']
@@ -58,6 +59,8 @@ def download_file(tracker_ip, tracker_port, torrent_metadata, output_dir="."):
                 if verify_chunk(chunk_file_path, chunk_hashes[chunk_index]):
                     print(f"Chunk {chunk_index} verified and saved to {chunk_file_path}.")
                     update_resume(chunk_index)
+                    if signal_progress:
+                        signal_progress(chunk_index, total_chunks)
                     return
                 else:
                     print(f"Chunk {chunk_index} failed verification. Retrying with another peer.")
@@ -78,7 +81,6 @@ def download_file(tracker_ip, tracker_port, torrent_metadata, output_dir="."):
         threads.append(t)
         t.start()
 
-
     for t in threads:
         t.join()
 
@@ -95,6 +97,8 @@ def download_file(tracker_ip, tracker_port, torrent_metadata, output_dir="."):
                 print(f"Chunk {i} added to the reconstructed file.")
 
         print(f"File successfully reconstructed as {output_file_path}")
+        if signal_complete:
+            signal_complete(output_file_path)
         os.remove(resume_path)
     else:
         print("File not fully downloaded yet. Resume next time to continue.")
