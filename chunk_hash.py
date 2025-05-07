@@ -11,27 +11,32 @@ def chunk_file(file_path):
 
     with open(file_path, 'rb') as f:
         while chunk := f.read(Chunk_size):
-            hash_obj = hashlib.sha256(chunk)
-            chunk_hashes.append(hash_obj.digest()) 
+            hash_obj = hashlib.sha1(chunk)  
+            chunk_hashes.append(hash_obj.digest())  
+
+            print(f"Hash of chunk (SHA-1): {hash_obj.hexdigest()}")
+
+    if not chunk_hashes:
+        print("Error: No chunks were hashed.")
+        return
 
     info = {
-        'length': file_size,  
+        'length': file_size, 
         'name': file_name,  
         'piece length': Chunk_size,  
-        'pieces': b''.join(chunk_hashes),  
+        'pieces': b''.join(chunk_hashes), 
     }
 
     torrent_data = {
-        'announce': 'http://127.0.0.1:9000',  
-        'info': info, 
+        'announce': 'http://127.0.0.1:9000', 
+        'info': info,  
     }
 
-    torrent_file = file_path + '.torrent' 
+    torrent_file = file_path + '.torrent'  
     with open(torrent_file, 'wb') as f:
-        f.write(bencodepy.encode(torrent_data))  
+        f.write(bencodepy.encode(torrent_data)) 
 
     print(f"Created .torrent file: {torrent_file}")
 
 file_path = input("Enter the path to the file you want to chunk: ")
 chunk_file(file_path)
-
