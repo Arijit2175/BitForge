@@ -22,4 +22,8 @@ class DownloadThread(QThread):
             self.update_progress.emit(progress)
             self.update_status.emit(f"Downloading {progress}%")
 
+        if self.downloaded >= self.file_size:
+            self.update_status.emit("Download Complete!")
+            self.update_progress.emit(100)
+
     
