@@ -94,3 +94,9 @@ class TorrentClientGUI(QWidget):
         def pause_download(self):
             if self.download_thread:
                 self.download_thread.pause()
+        
+        def stop_download(self):
+            if self.download_thread:
+                self.download_thread.stop()
+
+        
