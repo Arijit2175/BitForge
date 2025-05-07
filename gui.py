@@ -13,4 +13,13 @@ class DownloadThread(QThread):
         self.downloaded = 0
         self.running = False
 
+    def run(self):
+        self.running = True
+        while self.running and self.downloaded < self.file_size:
+            time.sleep(0.1)
+            self.downloaded += 1 * 1024 * 1024  
+            progress = int((self.downloaded / self.file_size) * 100)
+            self.update_progress.emit(progress)
+            self.update_status.emit(f"Downloading {progress}%")
+
     
