@@ -79,7 +79,7 @@ def start_seeding_server(peer_ip, peer_port, file_name, chunk_size, chunk_hashes
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server_socket:
         server_socket.bind((peer_ip, peer_port))
         server_socket.listen(5)
-        server_socket.settimeout(1.0)  # Allows loop to periodically check `running`
+        server_socket.settimeout(1.0) 
         print(f"Seeding server started on {peer_ip}:{peer_port} (Press Ctrl+C to stop)")
 
         while running:
