@@ -12,7 +12,7 @@ def register_peer():
         file_name = data.get("file_name")
         ip = data.get("ip")
         port = data.get("port")
-        chunks = data.get("chunks")
+        chunks = data.get("chunks")  
 
         if not all([file_name, ip, port, chunks]):
             return jsonify({"error": "Missing required fields"}), 400
@@ -36,23 +36,23 @@ def register_peer():
 def lookup_chunk():
     try:
         data = request.get_json()
-        chunk_index = data.get("chunk_index")
-        print(f"Lookup request for chunk {chunk_index}") 
+        chunk_hash = data.get("chunk_hash")  
+        print(f"Lookup request for chunk with hash {chunk_hash}") 
 
-        if chunk_index is None:
-            return jsonify({"error": "chunk_index is required"}), 400
+        if chunk_hash is None:
+            return jsonify({"error": "chunk_hash is required"}), 400
 
         peers_with_chunk = [
             {"ip": ip, "port": port}
             for (ip, port), chunks in peer_chunk_map.items()
-            if chunk_index in chunks
+            if chunk_hash in chunks 
         ]
 
         if not peers_with_chunk:
-            print(f"No peers found for chunk {chunk_index}.")  
+            print(f"No peers found for chunk {chunk_hash}.")  
             return jsonify({"peers": []}), 404  
 
-        print(f"Found peers for chunk {chunk_index}: {peers_with_chunk}")  
+        print(f"Found peers for chunk {chunk_hash}: {peers_with_chunk}")  
         return jsonify({"peers": peers_with_chunk}), 200
 
     except Exception as e:
