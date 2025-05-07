@@ -41,4 +41,6 @@ class TorrentClientGUI(QWidget):
         self.setWindowTitle("BitTorrent-like Client")
         self.setGeometry(200, 200, 400, 300)
 
+        self.layout = QVBoxLayout()
+
         
