@@ -43,4 +43,7 @@ class TorrentClientGUI(QWidget):
 
         self.layout = QVBoxLayout()
 
+        self.status_bar = QStatusBar()
+        self.layout.addWidget(self.status_bar)
+
         
