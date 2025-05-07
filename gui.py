@@ -63,12 +63,14 @@ class TorrentGUI(QWidget):
         try:
             with open(file_path, 'rb') as f:
                 torrent_data = bencodepy.decode(f.read())
+                pieces = torrent_data[b'info'][b'pieces']
+                chunk_hashes = [pieces[i:i+20].hex() for i in range(0, len(pieces), 20)]
                 self.torrent_metadata = {
                     'file_name': torrent_data[b'info'][b'name'].decode(),
-                    'chunk_size': 1024 * 1024,  
-                    'chunk_hashes': [x.hex() for x in torrent_data[b'info'][b'pieces']], 
-                    'tracker_ip': torrent_data[b'announce'].decode().split('/')[2],
-                    'tracker_port': 8000  
+                    'chunk_size': torrent_data[b'info'][b'piece length'],
+                    'chunk_hashes': chunk_hashes,
+                    'tracker_ip': torrent_data[b'announce'].decode().split('/')[2].split(':')[0],
+                    'tracker_port': int(torrent_data[b'announce'].decode().split('/')[2].split(':')[1]),
                 }
                 print(f"Parsed torrent: {self.torrent_metadata}")
         except Exception as e:
