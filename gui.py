@@ -34,4 +34,11 @@ class DownloadThread(QThread):
         self.running = False
         self.update_status.emit("Download Stopped")
 
-    
+class TorrentClientGUI(QWidget):
+    def __init__(self):
+        super().__init__()
+
+        self.setWindowTitle("BitTorrent-like Client")
+        self.setGeometry(200, 200, 400, 300)
+
+        
