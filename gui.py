@@ -1,112 +1,109 @@
 import sys
-import time
-from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QPushButton, QProgressBar, QFileDialog, QLabel, QStatusBar
-from PyQt5.QtCore import QThread, pyqtSignal
+import os
+import threading
+from PyQt5.QtWidgets import (
+    QApplication, QWidget, QVBoxLayout, QLabel, QPushButton,
+    QProgressBar, QFileDialog, QListWidget, QListWidgetItem, QMessageBox
+)
+from PyQt5.QtCore import Qt, pyqtSignal, QObject
+import json
+from parallel_downloader import download_file  
 
-class DownloadThread(QThread):
-    update_progress = pyqtSignal(int) 
-    update_status = pyqtSignal(str)   
+class DownloadSignals(QObject):
+    progress = pyqtSignal(int, int)  
+    complete = pyqtSignal(str)  
 
-    def __init__(self, file_size):
-        super().__init__()
-        self.file_size = file_size
-        self.downloaded = 0
-        self.running = False
-
-    def run(self):
-        self.running = True
-        while self.running and self.downloaded < self.file_size:
-            time.sleep(0.1)
-            self.downloaded += 1 * 1024 * 1024  
-            progress = int((self.downloaded / self.file_size) * 100)
-            self.update_progress.emit(progress)
-            self.update_status.emit(f"Downloading {progress}%")
-
-        if self.downloaded >= self.file_size:
-            self.update_status.emit("Download Complete!")
-            self.update_progress.emit(100)
-
-    def pause(self):
-        self.running = False
-        self.update_status.emit("Download Paused")
-
-    def stop(self):
-        self.running = False
-        self.update_status.emit("Download Stopped")
-
-class TorrentClientGUI(QWidget):
+class TorrentGUI(QWidget):
     def __init__(self):
         super().__init__()
-
-        self.setWindowTitle("BitTorrent-like Client")
-        self.setGeometry(200, 200, 400, 300)
+        self.setWindowTitle("BitForge - Torrent Client")
+        self.setGeometry(100, 100, 600, 400)
+        self.setStyleSheet("background-color: #f2f2f2; font-family: Arial;")
 
         self.layout = QVBoxLayout()
 
-        self.status_bar = QStatusBar()
-        self.layout.addWidget(self.status_bar)
-
-        self.label = QLabel("No file selected")
+        self.label = QLabel("Welcome to BitForge")
+        self.label.setStyleSheet("font-size: 20px; font-weight: bold; color: #333;")
         self.layout.addWidget(self.label)
 
-        self.progress_bar = QProgressBar(self)
-        self.progress_bar.setRange(0, 100)
+        self.file_select_btn = QPushButton("Select Torrent Info JSON")
+        self.file_select_btn.clicked.connect(self.select_torrent_info)
+        self.layout.addWidget(self.file_select_btn)
+
+        self.chunk_list = QListWidget()
+        self.layout.addWidget(self.chunk_list)
+
+        self.download_btn = QPushButton("Start Download")
+        self.download_btn.clicked.connect(self.start_download)
+        self.layout.addWidget(self.download_btn)
+
+        self.progress_bar = QProgressBar()
+        self.progress_bar.setValue(0)
         self.layout.addWidget(self.progress_bar)
-
-        self.select_file_btn = QPushButton("Select File", self)
-        self.select_file_btn.clicked.connect(self.select_file)
-        self.layout.addWidget(self.select_file_btn)
-
-        self.start_btn = QPushButton("Start Download", self)
-        self.start_btn.clicked.connect(self.start_download)
-        self.layout.addWidget(self.start_btn)
-
-        self.pause_btn = QPushButton("Pause Download", self)
-        self.pause_btn.clicked.connect(self.pause_download)
-        self.layout.addWidget(self.pause_btn)
-
-        self.stop_btn = QPushButton("Stop Download", self)
-        self.stop_btn.clicked.connect(self.stop_download)
-        self.layout.addWidget(self.stop_btn)
 
         self.setLayout(self.layout)
 
-        self.download_thread = None
-        self.file_size = 0
+        self.download_signals = DownloadSignals()
+        self.download_signals.progress.connect(self.update_chunk_status)
+        self.download_signals.complete.connect(self.show_completion)
 
-        def select_file(self):
-            file_path, _ = QFileDialog.getOpenFileName(self, "Select Torrent File", "", "All Files (*)")
-            if file_path:
-                self.label.setText(f"Selected File: {file_path}")
-                self.file_size = 10 * 1024 * 1024
-        
-        def start_download(self):
-            if not self.file_size:
-                self.status_bar.showMessage("Please select a file first.")
-                return
+        self.torrent_info_path = None
+        self.total_chunks = 0
 
-            self.status_bar.showMessage("Starting download...")
-            self.download_thread = DownloadThread(self.file_size)
-            self.download_thread.update_progress.connect(self.update_progress)
-            self.download_thread.update_status.connect(self.update_status)
-            self.download_thread.start()
+    def select_torrent_info(self):
+        file_path, _ = QFileDialog.getOpenFileName(self, "Select Torrent JSON", "", "JSON Files (*.json)")
+        if file_path:
+            self.torrent_info_path = file_path
+            self.chunk_list.clear()
+            self.label.setText(f"Loaded: {os.path.basename(file_path)}")
 
-        def pause_download(self):
-            if self.download_thread:
-                self.download_thread.pause()
-        
-        def stop_download(self):
-            if self.download_thread:
-                self.download_thread.stop()
+    def start_download(self):
+        if not self.torrent_info_path:
+            QMessageBox.warning(self, "No File", "Please select a torrent info file first.")
+            return
 
-        def update_progress(self, progress):
-            self.progress_bar.setValue(progress)
+        def run_download():
+            with open(self.torrent_info_path, 'r') as f:
+                torrent_metadata = json.load(f)
 
-        def update_status(self, status):
-            self.status_bar.showMessage(status)
-        
+            tracker_ip = torrent_metadata.get("tracker_ip", "127.0.0.1")
+            tracker_port = torrent_metadata.get("tracker_port", 8000)
+
+            def signal_wrapper(chunk_index, total_chunks):
+                self.download_signals.progress.emit(chunk_index, total_chunks)
+
+            def complete_callback(file_path):
+                self.download_signals.complete.emit(file_path)
+
+            download_file(
+                tracker_ip,
+                tracker_port,
+                torrent_metadata,
+                output_dir=".",
+                signal_progress=signal_wrapper,
+                signal_complete=complete_callback
+            )
+
+        threading.Thread(target=run_download, daemon=True).start()
+
+    def update_chunk_status(self, chunk_index, total):
+        if self.total_chunks == 0:
+            self.total_chunks = total
+            self.chunk_list.clear()
+            for i in range(total):
+                item = QListWidgetItem(f"Chunk {i}: Pending")
+                self.chunk_list.addItem(item)
+
+        if 0 <= chunk_index < self.chunk_list.count():
+            self.chunk_list.item(chunk_index).setText(f"Chunk {chunk_index}: Done")
+            downloaded_chunks = len([i for i in range(self.chunk_list.count()) if "Done" in self.chunk_list.item(i).text()])
+            self.progress_bar.setValue(int((downloaded_chunks / self.total_chunks) * 100))
+
+    def show_completion(self, file_path):
+        QMessageBox.information(self, "Download Complete", f"File reconstructed at: {file_path}")
+
 if __name__ == "__main__":
     app = QApplication(sys.argv)
-    window = TorrentClientGUI()
-    window.show()
+    gui = TorrentGUI()
+    gui.show()
     sys.exit(app.exec_())
