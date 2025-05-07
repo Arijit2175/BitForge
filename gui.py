@@ -74,4 +74,8 @@ class TorrentClientGUI(QWidget):
         self.download_thread = None
         self.file_size = 0
 
-        
+        def select_file(self):
+            file_path, _ = QFileDialog.getOpenFileName(self, "Select Torrent File", "", "All Files (*)")
+            if file_path:
+                self.label.setText(f"Selected File: {file_path}")
+                self.file_size = 10 * 1024 * 1024
