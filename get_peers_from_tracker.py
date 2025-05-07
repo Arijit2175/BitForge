@@ -4,7 +4,7 @@ import time
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
-def get_peers_for_chunk(tracker_ip, tracker_port, file_name, chunk_index, retries=3, timeout=5):
+def get_peers_for_chunk(tracker_ip, tracker_port, file_name, chunk_index, chunk_hashes, retries=3, timeout=5):
     """
     Request the list of peers for a specific chunk from the tracker.
     
@@ -12,19 +12,23 @@ def get_peers_for_chunk(tracker_ip, tracker_port, file_name, chunk_index, retrie
     :param tracker_port: The port of the tracker server.
     :param file_name: The name of the file for which the chunk is requested.
     :param chunk_index: The index of the chunk being requested.
+    :param chunk_hashes: List of chunk hashes.
     :param retries: The number of retries for failed requests.
     :param timeout: The timeout for each request.
     :return: List of peers or an empty list if no peers were found or an error occurred.
     """
     url = f"http://{tracker_ip}:{tracker_port}/lookup"
+    
+    chunk_hash = chunk_hashes[chunk_index]
+
     data = {
         "file_name": file_name,
-        "chunk_index": chunk_index
+        "chunk_hash": chunk_hash  
     }
 
     for attempt in range(retries):
         try:
-            logging.info(f"Requesting peers for chunk {chunk_index} (attempt {attempt + 1}/{retries})...")
+            logging.info(f"Requesting peers for chunk {chunk_index} (hash: {chunk_hash}) (attempt {attempt + 1}/{retries})...")
             response = requests.post(url, json=data, timeout=timeout)
             
             if response.status_code == 200:
