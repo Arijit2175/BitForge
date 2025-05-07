@@ -53,4 +53,22 @@ class TorrentClientGUI(QWidget):
         self.progress_bar.setRange(0, 100)
         self.layout.addWidget(self.progress_bar)
 
+        self.select_file_btn = QPushButton("Select File", self)
+        self.select_file_btn.clicked.connect(self.select_file)
+        self.layout.addWidget(self.select_file_btn)
+
+        self.start_btn = QPushButton("Start Download", self)
+        self.start_btn.clicked.connect(self.start_download)
+        self.layout.addWidget(self.start_btn)
+
+        self.pause_btn = QPushButton("Pause Download", self)
+        self.pause_btn.clicked.connect(self.pause_download)
+        self.layout.addWidget(self.pause_btn)
+
+        self.stop_btn = QPushButton("Stop Download", self)
+        self.stop_btn.clicked.connect(self.stop_download)
+        self.layout.addWidget(self.stop_btn)
+
+        self.setLayout(self.layout)
+
         
