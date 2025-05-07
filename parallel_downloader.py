@@ -45,7 +45,7 @@ def download_file(tracker_ip, tracker_port, torrent_metadata, output_dir=".",
     
         chunk_hash = chunk_hashes[chunk_index]
     
-        peers = get_peers_for_chunk(tracker_ip, tracker_port, file_name, chunk_index)
+        peers = get_peers_for_chunk(tracker_ip, tracker_port, file_name, chunk_index, chunk_hashes)
 
         if not peers:
             print(f"No peers found for chunk {chunk_index}. Retrying later.")
