@@ -17,25 +17,66 @@ class TorrentGUI(QWidget):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("BitForge - Torrent Client")
-        self.setGeometry(100, 100, 600, 400)
-        self.setStyleSheet("background-color: #f2f2f2; font-family: Arial;")
+        self.setGeometry(100, 100, 620, 460)
+        self.setStyleSheet("""
+            QWidget {
+                background-color: #1e1e1e;
+                font-family: 'Segoe UI', sans-serif;
+                font-size: 14px;
+                color: #f0f0f0;
+            }
+            QPushButton {
+                background-color: #3a8fb7;
+                color: white;
+                padding: 8px 16px;
+                border: none;
+                border-radius: 6px;
+            }
+            QPushButton:hover {
+                background-color: #2c6d91;
+            }
+            QLabel {
+                font-size: 22px;
+                font-weight: bold;
+                color: #ffffff;
+            }
+            QProgressBar {
+                border: 1px solid #333;
+                border-radius: 6px;
+                text-align: center;
+                height: 20px;
+                background-color: #2e2e2e;
+            }
+            QProgressBar::chunk {
+                background-color: #3a8fb7;
+                border-radius: 6px;
+            }
+            QListWidget {
+                border: 1px solid #444;
+                border-radius: 6px;
+                padding: 6px;
+                background-color: #2a2a2a;
+            }
+        """)
 
         self.layout = QVBoxLayout()
+        self.layout.setContentsMargins(20, 20, 20, 20)
+        self.layout.setSpacing(15)
 
         self.label = QLabel("Welcome to BitForge")
-        self.label.setStyleSheet("font-size: 20px; font-weight: bold; color: #333;")
+        self.label.setAlignment(Qt.AlignCenter)
         self.layout.addWidget(self.label)
 
         self.file_select_btn = QPushButton("Select .torrent File")
-        self.file_select_btn.clicked.connect(self.select_torrent_file)
         self.layout.addWidget(self.file_select_btn)
+        self.file_select_btn.clicked.connect(self.select_torrent_file)
 
         self.chunk_list = QListWidget()
         self.layout.addWidget(self.chunk_list)
 
         self.download_btn = QPushButton("Start Download")
-        self.download_btn.clicked.connect(self.start_download)
         self.layout.addWidget(self.download_btn)
+        self.download_btn.clicked.connect(self.start_download)
 
         self.progress_bar = QProgressBar()
         self.progress_bar.setValue(0)
@@ -82,6 +123,10 @@ class TorrentGUI(QWidget):
             QMessageBox.warning(self, "No File", "Please select a valid torrent file first.")
             return
 
+        output_dir = QFileDialog.getExistingDirectory(self, "Select Output Directory")
+        if not output_dir:
+            return
+
         def run_download():
             tracker_ip = self.torrent_metadata['tracker_ip']
             tracker_port = self.torrent_metadata['tracker_port']
@@ -96,7 +141,7 @@ class TorrentGUI(QWidget):
                 tracker_ip,
                 tracker_port,
                 self.torrent_metadata,
-                output_dir=".",
+                output_dir=output_dir,
                 signal_progress=signal_wrapper,
                 signal_complete=complete_callback
             )
@@ -117,17 +162,8 @@ class TorrentGUI(QWidget):
             self.progress_bar.setValue(int((downloaded_chunks / self.total_chunks) * 100))
 
     def show_completion(self, file_path):
-        save_file_path, _ = QFileDialog.getSaveFileName(self, "Save File", file_path, "All Files (*)")
+        QMessageBox.information(self, "Download Complete", f"File reconstructed at: {file_path}")
 
-        if save_file_path:
-            try:
-                os.rename(file_path, save_file_path)  
-                QMessageBox.information(self, "Download Complete", f"File saved to: {save_file_path}")
-            except Exception as e:
-                QMessageBox.warning(self, "Error", f"Failed to save the file: {str(e)}")
-        else:
-            QMessageBox.warning(self, "No Path", "File not saved. Please choose a valid path.")
-        
 if __name__ == "__main__":
     app = QApplication(sys.argv)
     gui = TorrentGUI()
