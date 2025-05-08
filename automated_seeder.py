@@ -134,7 +134,7 @@ def start_seeder():
     chunk_indexes = list(range(len(chunk_hashes)))
 
     print(f"Registering seeder with tracker at {tracker_ip}:{tracker_port}...")
-    register_seeder_to_tracker(tracker_ip, tracker_port, file_name, peer_ip, peer_port, chunk_indexes)
+    register_seeder_to_tracker(tracker_ip, tracker_port, file_name, peer_ip, peer_port, chunk_hashes)
 
     start_seeding_server(peer_ip, peer_port, file_name, chunk_size, chunk_hashes, seeding_folder)
 
