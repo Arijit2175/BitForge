@@ -117,11 +117,19 @@ class TorrentGUI(QWidget):
             self.progress_bar.setValue(int((downloaded_chunks / self.total_chunks) * 100))
 
     def show_completion(self, file_path):
-        QMessageBox.information(self, "Download Complete", f"File reconstructed at: {file_path}")
+        save_file_path, _ = QFileDialog.getSaveFileName(self, "Save File", file_path, "All Files (*)")
 
+        if save_file_path:
+            try:
+                os.rename(file_path, save_file_path)  
+                QMessageBox.information(self, "Download Complete", f"File saved to: {save_file_path}")
+            except Exception as e:
+                QMessageBox.warning(self, "Error", f"Failed to save the file: {str(e)}")
+        else:
+            QMessageBox.warning(self, "No Path", "File not saved. Please choose a valid path.")
+        
 if __name__ == "__main__":
     app = QApplication(sys.argv)
     gui = TorrentGUI()
     gui.show()
     sys.exit(app.exec_())
-
