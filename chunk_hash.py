@@ -2,37 +2,42 @@ import os
 import hashlib
 import bencodepy
 
-CHUNK_SIZE = 1024 * 1024  
+Chunk_size = 1024 * 1024  
 
 def chunk_file(file_path):
-    file_size = os.path.getsize(file_path)
-    file_name = os.path.basename(file_path)
+    file_size = os.path.getsize(file_path)  
+    file_name = os.path.basename(file_path)  
     chunk_hashes = []
 
     with open(file_path, 'rb') as f:
-        while chunk := f.read(CHUNK_SIZE):
-            sha256_hash = hashlib.sha256(chunk).hexdigest()
-            chunk_hashes.append(sha256_hash)
-            print(f"SHA-256 Hash of chunk: {sha256_hash}")
+        while chunk := f.read(Chunk_size):
+            hash_obj = hashlib.sha1(chunk)  
+            chunk_hashes.append(hash_obj.digest())  
+
+            print(f"Hash of chunk (SHA-1): {hash_obj.hexdigest()}")
 
     if not chunk_hashes:
         print("Error: No chunks were hashed.")
         return
 
-    torrent_dict = {
-        'file_name': file_name,
-        'file_size': file_size,
-        'chunk_size': CHUNK_SIZE,
-        'chunk_hashes': chunk_hashes,
-        'tracker_ip': '127.0.0.1',
-        'tracker_port': 9000
+    info = {
+        'length': file_size,  
+        'name': file_name,    
+        'piece length': Chunk_size,  
+        'pieces': b''.join(chunk_hashes),  
     }
 
-    torrent_file_path = file_path + '.torrent'
-    with open(torrent_file_path, 'wb') as f:
-        f.write(bencodepy.encode(torrent_dict))
+    torrent_data = {
+        'announce': 'http://127.0.0.1:9000',  
+        'info': info,  
+    }
 
-    print(f"✅ Created .torrent file: {torrent_file_path}")
+    torrent_file = file_path + '.torrent'  
+    with open(torrent_file, 'wb') as f:
+        f.write(bencodepy.encode(torrent_data))  
+
+    print(f"Created .torrent file: {torrent_file}")
 
 file_path = input("Enter the path to the file you want to chunk: ")
 chunk_file(file_path)
+
