@@ -20,7 +20,7 @@ def create_chunks(file_path, chunk_size, seeding_folder):
 
         for i in range(total_chunks):
             chunk = file_data[i * chunk_size: (i + 1) * chunk_size]
-            chunk_hash = hashlib.sha256(chunk).hexdigest()
+            chunk_hash = hashlib.sha1(chunk).hexdigest()
             chunk_file_name = f"chunk_{i}_{os.path.basename(file_path)}"
             chunk_file_path = os.path.join(seeding_folder, chunk_file_name)
 
@@ -133,7 +133,7 @@ def start_seeder():
             chunk_file_path = os.path.join(seeding_folder, chunk_filename)
             with open(chunk_file_path, 'rb') as chunk_file:
                 chunk_data = chunk_file.read()
-                chunk_hash = hashlib.sha256(chunk_data).hexdigest()
+                chunk_hash = hashlib.sha1(chunk_data).hexdigest()
                 chunk_hashes.append(chunk_hash)
         print(f"Chunks already exist in {seeding_folder}. Verified and ready to seed.")
 
