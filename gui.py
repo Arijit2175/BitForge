@@ -43,12 +43,12 @@ class TorrentGUI(QWidget):
         header_layout = QHBoxLayout()
         logo = QLabel()
         pixmap = QPixmap("assets/bitforge_logo.png")
-        logo.setPixmap(pixmap.scaled(40, 40, Qt.KeepAspectRatio, Qt.SmoothTransformation))
-        logo.setFixedSize(40, 40)
+        logo.setPixmap(pixmap.scaled(80, 80, Qt.KeepAspectRatio, Qt.SmoothTransformation))
+        logo.setFixedSize(80, 80)
 
         title = QLabel("BitForge")
-        title.setFont(QFont("Segoe UI", 20, QFont.Bold))
-        title.setStyleSheet("margin-left: 10px; color: #4CAF50;")
+        title.setObjectName("mainTitle")
+        title.setFont(QFont("Segoe UI", 32, QFont.Bold))
 
         header_layout.addWidget(logo)
         header_layout.addWidget(title)
@@ -56,15 +56,18 @@ class TorrentGUI(QWidget):
         self.layout.addLayout(header_layout)
 
         self.label = QLabel("Welcome to BitForge")
-        self.label.setFont(QFont("Segoe UI", 14))
+        self.label.setObjectName("welcomeLabel")
+        self.label.setFont(QFont("Segoe UI", 15, QFont.Bold))
         self.label.setAlignment(Qt.AlignCenter)
         self.layout.addWidget(self.label)
 
         btn_layout = QHBoxLayout()
         self.file_select_btn = QPushButton("📂 Select .torrent File")
+        self.file_select_btn.setFont(QFont("Segoe UI", 10, QFont.Bold))
         self.file_select_btn.clicked.connect(self.select_torrent_file)
 
         self.theme_toggle_btn = QPushButton("🌞 Toggle Light Mode")
+        self.theme_toggle_btn.setFont(QFont("Segoe UI", 10, QFont.Bold))
         self.theme_toggle_btn.clicked.connect(self.toggle_theme)
 
         btn_layout.addWidget(self.file_select_btn)
@@ -76,9 +79,11 @@ class TorrentGUI(QWidget):
 
         action_layout = QHBoxLayout()
         self.download_btn = QPushButton("⬇️ Start Download")
+        self.download_btn.setFont(QFont("Segoe UI", 10, QFont.Bold))
         self.download_btn.clicked.connect(self.start_download)
 
         self.pause_btn = QPushButton("⏸️ Pause")
+        self.pause_btn.setFont(QFont("Segoe UI", 10, QFont.Bold))
         self.pause_btn.clicked.connect(self.toggle_pause)
         self.pause_btn.setEnabled(False)
 
@@ -107,7 +112,6 @@ class TorrentGUI(QWidget):
                 background-color: #1e1e1e;
                 color: #ffffff;
                 font-family: 'Segoe UI';
-                font-size: 14px;
             }
             QPushButton {
                 background-color: #2d89ef;
@@ -126,6 +130,18 @@ class TorrentGUI(QWidget):
             QProgressBar::chunk {
                 background-color: #00cc66;
             }
+            QLabel#mainTitle {
+                font-size: 32px;
+                color: #5376FF;
+                margin-left: 5px;
+                margin-bottom: 10px;
+            }
+            QLabel#welcomeLabel {
+                font-size: 20px;
+                font-weight: bold;
+                margin-bottom: 10px;
+                text-align: center;
+            }
         """)
 
     def apply_light_theme(self):
@@ -134,7 +150,6 @@ class TorrentGUI(QWidget):
                 background-color: #ffffff;
                 color: #000000;
                 font-family: 'Segoe UI';
-                font-size: 14px;
             }
             QPushButton {
                 background-color: #0078d4;
@@ -152,6 +167,18 @@ class TorrentGUI(QWidget):
             }
             QProgressBar::chunk {
                 background-color: #0078d4;
+            }
+            QLabel#mainTitle {
+                font-size: 32px;
+                color: #5376FF;
+                margin-left: 5px;
+                margin-bottom: 10px;
+            }
+            QLabel#welcomeLabel {
+                font-size: 20px;
+                font-weight: bold;
+                margin-bottom: 10px;
+                text-align: center;
             }
         """)
 
@@ -236,6 +263,7 @@ class TorrentGUI(QWidget):
     def show_completion(self, file_path):
         self.pause_btn.setEnabled(False)
         QMessageBox.information(self, "Download Complete", f"File reconstructed at:\n{file_path}")
+
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
