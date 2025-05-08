@@ -7,12 +7,12 @@ import sys
 import time
 from register_seeder import register_seeder_to_tracker  
 
-running = True  
+running = True 
 
 def create_chunks(file_path, chunk_size, seeding_folder):
     """
     Splits a file into chunks and stores them in seeding_folder.
-    Returns a list of SHA256 hashes for each chunk.
+    Returns a list of SHA256 hashes for each chunk after they are written to disk.
     """
     with open(file_path, 'rb') as f:
         file_data = f.read()
@@ -85,7 +85,7 @@ def signal_handler(sig, frame):
     running = False
     sys.exit(0)
 
-signal.signal(signal.SIGINT, signal_handler)  
+signal.signal(signal.SIGINT, signal_handler) 
 
 def start_seeding_server(peer_ip, peer_port, file_name, chunk_size, chunk_hashes, seeding_folder):
     """
