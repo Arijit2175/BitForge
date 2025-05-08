@@ -30,7 +30,7 @@ def download_chunk(peer_ip, peer_port, chunk_index, chunk_size, file_name, expec
 
         client_socket.close()
 
-        chunk_hash = hashlib.sha256(received_data).hexdigest()
+        chunk_hash = hashlib.sha1(received_data).hexdigest()
         if chunk_hash == expected_hash:
             print(f"Chunk {chunk_index} verified successfully!")
             return received_data
