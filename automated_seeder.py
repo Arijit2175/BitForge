@@ -4,6 +4,7 @@ import socket
 import threading
 import signal
 import sys
+import time
 
 running = True  
 
@@ -136,6 +137,18 @@ def start_seeder():
     print(f"Registering seeder with tracker at {tracker_ip}:{tracker_port}...")
     register_seeder_to_tracker(tracker_ip, tracker_port, file_name, peer_ip, peer_port, chunk_hashes)
 
-    start_seeding_server(peer_ip, peer_port, file_name, chunk_size, chunk_hashes, seeding_folder)
+    seeder_thread = threading.Thread(
+        target=start_seeding_server,
+        args=(peer_ip, peer_port, file_name, chunk_size, chunk_hashes, seeding_folder),
+        daemon=True
+    )
+    seeder_thread.start()
+
+    print(f"Seeder server is running in the background. Press Ctrl+C to stop.")
+    try:
+        while True:
+            time.sleep(1)
+    except KeyboardInterrupt:
+        signal_handler(None, None)
 
 start_seeder()
