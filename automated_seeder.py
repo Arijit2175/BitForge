@@ -5,7 +5,6 @@ import threading
 import signal
 import sys
 import time
-
 from register_seeder import register_seeder_to_tracker
 
 running = True
@@ -32,12 +31,12 @@ def create_chunks(file_path, chunk_size, seeding_folder):
 
     return chunk_hashes
 
-def handle_peer(peer_socket, peer_ip, peer_port, file_name, seeding_folder):
+def handle_peer(peer_socket, peer_ip, peer_port, file_name, chunk_size, chunk_hashes, seeding_folder):
     with peer_socket:
         print(f"Connected to peer {peer_ip}:{peer_port}.")
         request = peer_socket.recv(1024).decode().strip()
-
         print(f"Received request: {request}")
+
         if request.startswith('GET_CHUNK'):
             try:
                 parts = request.split(" ")
@@ -78,7 +77,7 @@ def signal_handler(sig, frame):
 
 signal.signal(signal.SIGINT, signal_handler)
 
-def start_seeding_server(peer_ip, peer_port, file_name, seeding_folder):
+def start_seeding_server(peer_ip, peer_port, file_name, chunk_size, chunk_hashes, seeding_folder):
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server_socket:
         server_socket.bind((peer_ip, peer_port))
         server_socket.listen(5)
@@ -90,7 +89,7 @@ def start_seeding_server(peer_ip, peer_port, file_name, seeding_folder):
                 peer_socket, _ = server_socket.accept()
                 threading.Thread(
                     target=handle_peer,
-                    args=(peer_socket, peer_ip, peer_port, file_name, seeding_folder)
+                    args=(peer_socket, peer_ip, peer_port, file_name, chunk_size, chunk_hashes, seeding_folder)
                 ).start()
             except socket.timeout:
                 continue
@@ -107,29 +106,40 @@ def start_seeder():
         return
 
     file_name = os.path.basename(file_path)
-    chunk_size = 1024 * 1024
+    chunk_size = 1024 * 1024  
 
-    existing_chunks = [f for f in os.listdir(seeding_folder) if f.startswith(f"chunk_")]
-    total_chunks = len(existing_chunks)
+    print("Preparing chunk hashes...")
 
-    if total_chunks == 0:
-        print(f"Chunks missing, generating chunks for {file_name}...")
+    chunk_hashes = []
+    file_size = os.path.getsize(file_path)
+    total_chunks = (file_size + chunk_size - 1) // chunk_size
+
+    regenerate = False
+    for i in range(total_chunks):
+        chunk_filename = f"chunk_{i}_{file_name}"
+        chunk_file_path = os.path.join(seeding_folder, chunk_filename)
+
+        if not os.path.exists(chunk_file_path):
+            regenerate = True
+            break
+
+    if regenerate:
+        print("Chunks missing or corrupted. Regenerating all chunks...")
         chunk_hashes = create_chunks(file_path, chunk_size, seeding_folder)
         print(f"Chunks generated successfully for {file_name}.")
     else:
-        print(f"Chunks already exist in {seeding_folder}. Ready to seed.")
-        chunk_hashes = []
         for i in range(total_chunks):
             chunk_filename = f"chunk_{i}_{file_name}"
             chunk_file_path = os.path.join(seeding_folder, chunk_filename)
-            if os.path.exists(chunk_file_path):
-                with open(chunk_file_path, 'rb') as chunk_file:
-                    chunk_data = chunk_file.read()
-                    chunk_hash = hashlib.sha256(chunk_data).hexdigest()
-                    chunk_hashes.append(chunk_hash)
+            with open(chunk_file_path, 'rb') as chunk_file:
+                chunk_data = chunk_file.read()
+                chunk_hash = hashlib.sha256(chunk_data).hexdigest()
+                chunk_hashes.append(chunk_hash)
+        print(f"Chunks already exist in {seeding_folder}. Verified and ready to seed.")
 
     peer_ip = '127.0.0.1'
     peer_port = 5000
+
     tracker_ip = '127.0.0.1'
     tracker_port = 9000
 
@@ -138,7 +148,7 @@ def start_seeder():
 
     seeder_thread = threading.Thread(
         target=start_seeding_server,
-        args=(peer_ip, peer_port, file_name, seeding_folder),
+        args=(peer_ip, peer_port, file_name, chunk_size, chunk_hashes, seeding_folder),
         daemon=True
     )
     seeder_thread.start()
