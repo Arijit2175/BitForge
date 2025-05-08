@@ -2,7 +2,6 @@ import json
 from flask import Flask, request, jsonify
 
 app = Flask(__name__)
-
 peer_chunk_map = {}
 
 @app.route('/register', methods=['POST'])
@@ -12,23 +11,28 @@ def register_peer():
         file_name = data.get("file_name")
         ip = data.get("ip")
         port = data.get("port")
-        chunks = data.get("chunks")  
+        chunks = data.get("chunks") 
 
         if not all([file_name, ip, port, chunks]):
             return jsonify({"error": "Missing required fields"}), 400
 
-        peer = (ip, port)  
-        if peer in peer_chunk_map:
-            peer_chunk_map[peer].update(chunks)  
-        else:
-            peer_chunk_map[peer] = set(chunks)  
+        for h in chunks:
+            if not isinstance(h, str) or len(h) < 10:
+                return jsonify({"error": f"Invalid chunk hash: {h}"}), 400
 
-        print(f"Registered peer {peer} with chunks {chunks}")
-        print(f"Current peer_chunk_map: {peer_chunk_map}")
+        peer = (ip, port)
+        if peer in peer_chunk_map:
+            peer_chunk_map[peer].update(chunks)
+        else:
+            peer_chunk_map[peer] = set(chunks)
+
+        print(f"✅ Registered peer {peer} with {len(chunks)} chunks.")
+        print(f"📦 Current peer_chunk_map has {len(peer_chunk_map)} peers.")
 
         return jsonify({"message": "Successfully registered with tracker."}), 200
+
     except Exception as e:
-        print(f"Error during registration: {e}")
+        print(f"❌ Error during registration: {e}")
         return jsonify({"error": "Registration failed"}), 500
 
 
@@ -36,28 +40,30 @@ def register_peer():
 def lookup_chunk():
     try:
         data = request.get_json()
-        chunk_hash = data.get("chunk_hash")  
-        print(f"Lookup request for chunk with hash {chunk_hash}") 
+        chunk_hash = data.get("chunk_hash")
 
-        if chunk_hash is None:
+        print(f"🔍 Lookup request for chunk: {chunk_hash}")
+
+        if not chunk_hash:
             return jsonify({"error": "chunk_hash is required"}), 400
 
         peers_with_chunk = [
             {"ip": ip, "port": port}
             for (ip, port), chunks in peer_chunk_map.items()
-            if chunk_hash in chunks 
+            if chunk_hash in chunks
         ]
 
         if not peers_with_chunk:
-            print(f"No peers found for chunk {chunk_hash}.")  
-            return jsonify({"peers": []}), 404  
+            print(f"⚠️ No peers found for chunk {chunk_hash}.")
+            return jsonify({"peers": []}), 404
 
-        print(f"Found peers for chunk {chunk_hash}: {peers_with_chunk}")  
+        print(f"✅ Found {len(peers_with_chunk)} peer(s) for chunk {chunk_hash}.")
         return jsonify({"peers": peers_with_chunk}), 200
 
     except Exception as e:
-        print(f"Error during chunk lookup: {e}")
+        print(f"❌ Error during chunk lookup: {e}")
         return jsonify({"error": "Chunk lookup failed"}), 500
+
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=9000)
