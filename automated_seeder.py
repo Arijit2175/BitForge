@@ -5,15 +5,12 @@ import threading
 import signal
 import sys
 import time
-from register_seeder import register_seeder_to_tracker  
 
-running = True 
+from register_seeder import register_seeder_to_tracker
+
+running = True
 
 def create_chunks(file_path, chunk_size, seeding_folder):
-    """
-    Splits a file into chunks and stores them in seeding_folder.
-    Returns a list of SHA256 hashes for each chunk after they are written to disk.
-    """
     with open(file_path, 'rb') as f:
         file_data = f.read()
         total_chunks = len(file_data) // chunk_size
@@ -35,10 +32,7 @@ def create_chunks(file_path, chunk_size, seeding_folder):
 
     return chunk_hashes
 
-def handle_peer(peer_socket, peer_ip, peer_port, file_name, chunk_size, chunk_hashes, seeding_folder):
-    """
-    Handles a peer's request for a chunk, sends the requested chunk if available.
-    """
+def handle_peer(peer_socket, peer_ip, peer_port, file_name, seeding_folder):
     with peer_socket:
         print(f"Connected to peer {peer_ip}:{peer_port}.")
         request = peer_socket.recv(1024).decode().strip()
@@ -77,24 +71,18 @@ def handle_peer(peer_socket, peer_ip, peer_port, file_name, chunk_size, chunk_ha
             print(f"Invalid request: {request}")
 
 def signal_handler(sig, frame):
-    """
-    Handles graceful shutdown of the seeder server.
-    """
     global running
     print("\nShutting down seeder gracefully...")
     running = False
     sys.exit(0)
 
-signal.signal(signal.SIGINT, signal_handler) 
+signal.signal(signal.SIGINT, signal_handler)
 
-def start_seeding_server(peer_ip, peer_port, file_name, chunk_size, chunk_hashes, seeding_folder):
-    """
-    Starts the seeding server, listening for peer connections and sending chunks upon request.
-    """
+def start_seeding_server(peer_ip, peer_port, file_name, seeding_folder):
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server_socket:
         server_socket.bind((peer_ip, peer_port))
         server_socket.listen(5)
-        server_socket.settimeout(1.0) 
+        server_socket.settimeout(1.0)
         print(f"Seeding server started on {peer_ip}:{peer_port} (Press Ctrl+C to stop)")
 
         while running:
@@ -102,15 +90,12 @@ def start_seeding_server(peer_ip, peer_port, file_name, chunk_size, chunk_hashes
                 peer_socket, _ = server_socket.accept()
                 threading.Thread(
                     target=handle_peer,
-                    args=(peer_socket, peer_ip, peer_port, file_name, chunk_size, chunk_hashes, seeding_folder)
+                    args=(peer_socket, peer_ip, peer_port, file_name, seeding_folder)
                 ).start()
             except socket.timeout:
-                continue  
+                continue
 
 def start_seeder():
-    """
-    Starts the seeder, creating chunks, registering with the tracker, and starting the seeding server.
-    """
     file_path = input("Enter the path of the file to seed: ")
     seeding_folder = input("Enter the path for the seeding folder: ")
 
@@ -122,13 +107,14 @@ def start_seeder():
         return
 
     file_name = os.path.basename(file_path)
+    chunk_size = 1024 * 1024
 
     existing_chunks = [f for f in os.listdir(seeding_folder) if f.startswith(f"chunk_")]
     total_chunks = len(existing_chunks)
 
     if total_chunks == 0:
         print(f"Chunks missing, generating chunks for {file_name}...")
-        chunk_hashes = create_chunks(file_path, 1024 * 1024, seeding_folder)
+        chunk_hashes = create_chunks(file_path, chunk_size, seeding_folder)
         print(f"Chunks generated successfully for {file_name}.")
     else:
         print(f"Chunks already exist in {seeding_folder}. Ready to seed.")
@@ -144,8 +130,6 @@ def start_seeder():
 
     peer_ip = '127.0.0.1'
     peer_port = 5000
-    chunk_size = 1024 * 1024
-
     tracker_ip = '127.0.0.1'
     tracker_port = 9000
 
@@ -154,7 +138,7 @@ def start_seeder():
 
     seeder_thread = threading.Thread(
         target=start_seeding_server,
-        args=(peer_ip, peer_port, file_name, chunk_size, chunk_hashes, seeding_folder),
+        args=(peer_ip, peer_port, file_name, seeding_folder),
         daemon=True
     )
     seeder_thread.start()
@@ -166,4 +150,5 @@ def start_seeder():
     except KeyboardInterrupt:
         signal_handler(None, None)
 
-start_seeder()
+if __name__ == "__main__":
+    start_seeder()
