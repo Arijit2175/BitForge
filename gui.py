@@ -40,7 +40,7 @@ class TorrentGUI(QWidget):
         self.layout = QVBoxLayout()
 
         self.logo = QLabel()
-        pixmap = QPixmap("bitforge_logo.png")  
+        pixmap = QPixmap("assets/bitforge_logo.png")  
         self.logo.setPixmap(pixmap.scaled(80, 80, Qt.KeepAspectRatio))
         self.logo.setAlignment(Qt.AlignCenter)
         self.layout.addWidget(self.logo)
