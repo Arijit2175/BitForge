@@ -85,7 +85,7 @@ def signal_handler(sig, frame):
     running = False
     sys.exit(0)
 
-signal.signal(signal.SIGINT, signal_handler)  # Set up signal handler for graceful shutdown
+signal.signal(signal.SIGINT, signal_handler)  
 
 def start_seeding_server(peer_ip, peer_port, file_name, chunk_size, chunk_hashes, seeding_folder):
     """
