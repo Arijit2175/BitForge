@@ -93,6 +93,7 @@ def start_seeding_server(peer_ip, peer_port, file_name, chunk_size, chunk_hashes
                 continue  
 
 def start_seeder():
+    from register_seeder import register_seeder_to_tracker
     file_path = input("Enter the path of the file to seed: ")
     seeding_folder = input("Enter the path for the seeding folder: ")
 
@@ -127,6 +128,14 @@ def start_seeder():
     peer_ip = '127.0.0.1'
     peer_port = 5000
     chunk_size = 1024 * 1024
+
+    tracker_ip = '127.0.0.1'
+    tracker_port = 9000
+    chunk_indexes = list(range(len(chunk_hashes)))
+
+    print(f"Registering seeder with tracker at {tracker_ip}:{tracker_port}...")
+    register_seeder_to_tracker(tracker_ip, tracker_port, file_name, peer_ip, peer_port, chunk_indexes)
+
     start_seeding_server(peer_ip, peer_port, file_name, chunk_size, chunk_hashes, seeding_folder)
 
 start_seeder()
