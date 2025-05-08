@@ -11,9 +11,11 @@ from PyQt5.QtCore import Qt, pyqtSignal, QObject
 import bencodepy
 from parallel_downloader import download_file
 
+
 class DownloadSignals(QObject):
     progress = pyqtSignal(int, int)
     complete = pyqtSignal(str)
+
 
 class TorrentGUI(QWidget):
     def __init__(self):
@@ -21,7 +23,6 @@ class TorrentGUI(QWidget):
         self.setWindowTitle("BitForge - Torrent Client")
         self.setGeometry(100, 100, 700, 500)
 
-        # State
         self.torrent_file_path = None
         self.total_chunks = 0
         self.torrent_metadata = None
@@ -39,14 +40,23 @@ class TorrentGUI(QWidget):
     def setup_ui(self):
         self.layout = QVBoxLayout()
 
-        self.logo = QLabel()
-        pixmap = QPixmap("assets/bitforge_logo.png")  
-        self.logo.setPixmap(pixmap.scaled(80, 80, Qt.KeepAspectRatio))
-        self.logo.setAlignment(Qt.AlignCenter)
-        self.layout.addWidget(self.logo)
+        header_layout = QHBoxLayout()
+        logo = QLabel()
+        pixmap = QPixmap("assets/bitforge_logo.png")
+        logo.setPixmap(pixmap.scaled(40, 40, Qt.KeepAspectRatio, Qt.SmoothTransformation))
+        logo.setFixedSize(40, 40)
+
+        title = QLabel("BitForge")
+        title.setFont(QFont("Segoe UI", 20, QFont.Bold))
+        title.setStyleSheet("margin-left: 10px; color: #4CAF50;")
+
+        header_layout.addWidget(logo)
+        header_layout.addWidget(title)
+        header_layout.addStretch()
+        self.layout.addLayout(header_layout)
 
         self.label = QLabel("Welcome to BitForge")
-        self.label.setFont(QFont("Segoe UI", 18, QFont.Bold))
+        self.label.setFont(QFont("Segoe UI", 14))
         self.label.setAlignment(Qt.AlignCenter)
         self.layout.addWidget(self.label)
 
