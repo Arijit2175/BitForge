@@ -3,141 +3,147 @@ import os
 import threading
 from PyQt5.QtWidgets import (
     QApplication, QWidget, QVBoxLayout, QLabel, QPushButton,
-    QProgressBar, QFileDialog, QListWidget, QListWidgetItem, QMessageBox
+    QProgressBar, QFileDialog, QListWidget, QListWidgetItem,
+    QMessageBox, QHBoxLayout
 )
+from PyQt5.QtGui import QPixmap, QFont
 from PyQt5.QtCore import Qt, pyqtSignal, QObject
-from PyQt5.QtGui import QFont
 import bencodepy
 from parallel_downloader import download_file
-
 
 class DownloadSignals(QObject):
     progress = pyqtSignal(int, int)
     complete = pyqtSignal(str)
 
-
 class TorrentGUI(QWidget):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("BitForge - Torrent Client")
-        self.setGeometry(100, 100, 600, 450)
-        self.setFont(QFont("Segoe UI", 10))
+        self.setGeometry(100, 100, 700, 500)
 
-        self.layout = QVBoxLayout()
-        self.setLayout(self.layout)
-
-        self.dark_mode = True
-
-        self.label = QLabel("Welcome to BitForge")
-        self.label.setStyleSheet("font-size: 20px; font-weight: bold;")
-        self.layout.addWidget(self.label)
-
-        self.file_select_btn = QPushButton("Select .torrent File")
-        self.file_select_btn.clicked.connect(self.select_torrent_file)
-        self.layout.addWidget(self.file_select_btn)
-
-        self.chunk_list = QListWidget()
-        self.layout.addWidget(self.chunk_list)
-
-        self.download_btn = QPushButton("Start Download")
-        self.download_btn.clicked.connect(self.start_download)
-        self.layout.addWidget(self.download_btn)
-
-        self.progress_bar = QProgressBar()
-        self.progress_bar.setValue(0)
-        self.layout.addWidget(self.progress_bar)
-
-        self.theme_toggle_btn = QPushButton()
-        self.theme_toggle_btn.clicked.connect(self.toggle_theme)
-        self.layout.addWidget(self.theme_toggle_btn)
+        # State
+        self.torrent_file_path = None
+        self.total_chunks = 0
+        self.torrent_metadata = None
+        self.is_dark_mode = True
+        self.download_thread = None
+        self.download_paused = False
 
         self.download_signals = DownloadSignals()
         self.download_signals.progress.connect(self.update_chunk_status)
         self.download_signals.complete.connect(self.show_completion)
 
-        self.torrent_file_path = None
-        self.total_chunks = 0
-        self.torrent_metadata = None
+        self.setup_ui()
+        self.apply_dark_theme()
 
-        self.apply_theme()
+    def setup_ui(self):
+        self.layout = QVBoxLayout()
 
-    def apply_theme(self):
-        if self.dark_mode:
-            self.setStyleSheet("""
-                QWidget {
-                    background-color: #121212;
-                    color: #e0e0e0;
-                    font-family: 'Segoe UI';
-                    font-size: 13px;
-                }
-                QPushButton {
-                    background-color: #2c2c2c;
-                    color: #ffffff;
-                    border: none;
-                    padding: 10px 16px;
-                    border-radius: 10px;
-                }
-                QPushButton:hover {
-                    background-color: #3d3d3d;
-                }
-                QProgressBar {
-                    border: 1px solid #444;
-                    border-radius: 6px;
-                    background-color: #222;
-                    height: 16px;
-                    text-align: center;
-                }
-                QProgressBar::chunk {
-                    background-color: #00cc66;
-                    border-radius: 6px;
-                }
-                QListWidget {
-                    background-color: #1e1e1e;
-                    border: 1px solid #444;
-                    border-radius: 6px;
-                }
-            """)
-            self.theme_toggle_btn.setText("Toggle Light Mode")
-        else:
-            self.setStyleSheet("""
-                QWidget {
-                    background-color: #f5f5f5;
-                    color: #000000;
-                    font-family: 'Segoe UI';
-                    font-size: 13px;
-                }
-                QPushButton {
-                    background-color: #ffffff;
-                    color: #333;
-                    border: 1px solid #ccc;
-                    padding: 10px 16px;
-                    border-radius: 10px;
-                }
-                QPushButton:hover {
-                    background-color: #e0e0e0;
-                }
-                QProgressBar {
-                    border: 1px solid #999;
-                    border-radius: 6px;
-                    background-color: #ffffff;
-                    height: 16px;
-                    text-align: center;
-                }
-                QProgressBar::chunk {
-                    background-color: #4caf50;
-                    border-radius: 6px;
-                }
-                QListWidget {
-                    background-color: #ffffff;
-                    border: 1px solid #aaa;
-                    border-radius: 6px;
-                }
-            """)
-            self.theme_toggle_btn.setText("Toggle Dark Mode")
+        self.logo = QLabel()
+        pixmap = QPixmap("bitforge_logo.png")  
+        self.logo.setPixmap(pixmap.scaled(80, 80, Qt.KeepAspectRatio))
+        self.logo.setAlignment(Qt.AlignCenter)
+        self.layout.addWidget(self.logo)
+
+        self.label = QLabel("Welcome to BitForge")
+        self.label.setFont(QFont("Segoe UI", 18, QFont.Bold))
+        self.label.setAlignment(Qt.AlignCenter)
+        self.layout.addWidget(self.label)
+
+        btn_layout = QHBoxLayout()
+        self.file_select_btn = QPushButton("📂 Select .torrent File")
+        self.file_select_btn.clicked.connect(self.select_torrent_file)
+
+        self.theme_toggle_btn = QPushButton("🌞 Toggle Light Mode")
+        self.theme_toggle_btn.clicked.connect(self.toggle_theme)
+
+        btn_layout.addWidget(self.file_select_btn)
+        btn_layout.addWidget(self.theme_toggle_btn)
+        self.layout.addLayout(btn_layout)
+
+        self.chunk_list = QListWidget()
+        self.layout.addWidget(self.chunk_list)
+
+        action_layout = QHBoxLayout()
+        self.download_btn = QPushButton("⬇️ Start Download")
+        self.download_btn.clicked.connect(self.start_download)
+
+        self.pause_btn = QPushButton("⏸️ Pause")
+        self.pause_btn.clicked.connect(self.toggle_pause)
+        self.pause_btn.setEnabled(False)
+
+        action_layout.addWidget(self.download_btn)
+        action_layout.addWidget(self.pause_btn)
+        self.layout.addLayout(action_layout)
+
+        self.progress_bar = QProgressBar()
+        self.progress_bar.setValue(0)
+        self.layout.addWidget(self.progress_bar)
+
+        self.setLayout(self.layout)
 
     def toggle_theme(self):
-        self.dark_mode = not self.dark_mode
-        self.apply_theme()
+        self.is_dark_mode = not self.is_dark_mode
+        if self.is_dark_mode:
+            self.apply_dark_theme()
+            self.theme_toggle_btn.setText("🌞 Toggle Light Mode")
+        else:
+            self.apply_light_theme()
+            self.theme_toggle_btn.setText("🌙 Toggle Dark Mode")
+
+    def apply_dark_theme(self):
+        self.setStyleSheet("""
+            QWidget {
+                background-color: #1e1e1e;
+                color: #ffffff;
+                font-family: 'Segoe UI';
+                font-size: 14px;
+            }
+            QPushButton {
+                background-color: #2d89ef;
+                color: white;
+                padding: 8px;
+                border-radius: 6px;
+            }
+            QPushButton:hover {
+                background-color: #1b65c2;
+            }
+            QProgressBar {
+                background-color: #333;
+                border-radius: 5px;
+                text-align: center;
+            }
+            QProgressBar::chunk {
+                background-color: #00cc66;
+            }
+        """)
+
+    def apply_light_theme(self):
+        self.setStyleSheet("""
+            QWidget {
+                background-color: #ffffff;
+                color: #000000;
+                font-family: 'Segoe UI';
+                font-size: 14px;
+            }
+            QPushButton {
+                background-color: #0078d4;
+                color: white;
+                padding: 8px;
+                border-radius: 6px;
+            }
+            QPushButton:hover {
+                background-color: #005fa1;
+            }
+            QProgressBar {
+                background-color: #f0f0f0;
+                border-radius: 5px;
+                text-align: center;
+            }
+            QProgressBar::chunk {
+                background-color: #0078d4;
+            }
+        """)
 
     def select_torrent_file(self):
         file_path, _ = QFileDialog.getOpenFileName(self, "Select Torrent File", "", "Torrent Files (*.torrent)")
@@ -160,7 +166,6 @@ class TorrentGUI(QWidget):
                     'tracker_ip': torrent_data[b'announce'].decode().split('/')[2].split(':')[0],
                     'tracker_port': int(torrent_data[b'announce'].decode().split('/')[2].split(':')[1]),
                 }
-                print(f"Parsed torrent: {self.torrent_metadata}")
         except Exception as e:
             print(f"Error parsing torrent file: {e}")
             QMessageBox.warning(self, "Error", "Failed to parse torrent file.")
@@ -170,15 +175,20 @@ class TorrentGUI(QWidget):
             QMessageBox.warning(self, "No File", "Please select a valid torrent file first.")
             return
 
-        output_dir = QFileDialog.getExistingDirectory(self, "Select Folder to Save Download")
+        output_dir = QFileDialog.getExistingDirectory(self, "Choose Download Location")
         if not output_dir:
             return
+
+        self.pause_btn.setEnabled(True)
+        self.download_paused = False
 
         def run_download():
             tracker_ip = self.torrent_metadata['tracker_ip']
             tracker_port = self.torrent_metadata['tracker_port']
 
             def signal_wrapper(chunk_index, total_chunks):
+                while self.download_paused:
+                    QApplication.processEvents()
                 self.download_signals.progress.emit(chunk_index, total_chunks)
 
             def complete_callback(file_path):
@@ -193,7 +203,12 @@ class TorrentGUI(QWidget):
                 signal_complete=complete_callback
             )
 
-        threading.Thread(target=run_download, daemon=True).start()
+        self.download_thread = threading.Thread(target=run_download, daemon=True)
+        self.download_thread.start()
+
+    def toggle_pause(self):
+        self.download_paused = not self.download_paused
+        self.pause_btn.setText("▶️ Resume" if self.download_paused else "⏸️ Pause")
 
     def update_chunk_status(self, chunk_index, total):
         if self.total_chunks == 0:
@@ -209,8 +224,8 @@ class TorrentGUI(QWidget):
             self.progress_bar.setValue(int((downloaded_chunks / self.total_chunks) * 100))
 
     def show_completion(self, file_path):
-        QMessageBox.information(self, "Download Complete", f"File reconstructed at: {file_path}")
-
+        self.pause_btn.setEnabled(False)
+        QMessageBox.information(self, "Download Complete", f"File reconstructed at:\n{file_path}")
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
