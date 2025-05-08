@@ -28,6 +28,7 @@ def register_peer():
 
         print(f"✅ Registered peer {peer} with {len(chunks)} chunks.")
         print(f"📦 Current peer_chunk_map has {len(peer_chunk_map)} peers.")
+        print("Registering chunks:", chunks)
 
         return jsonify({"message": "Successfully registered with tracker."}), 200
 
