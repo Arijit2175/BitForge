@@ -59,5 +59,14 @@ python automated_seeder.py
 python gui.py
 ```
 
+## 🧭 Applications
+
+- 📦 **Educational Tool** – Learn how real-world file sharing protocols like BitTorrent work.
+- 🛠 **Custom P2P Sharing** – Share files within a closed network (classroom, LAN, etc.).
+- 🔄 **Resumable Downloads** – Download large files with chunked resume support.
+- 🔍 **Experimentation Base** – Extend to add DHT, magnet links, peer banning, etc.
+- 💻 **GUI Showcases** – Demonstrate PyQt integration with threaded backend systems.
+
+
 
 
