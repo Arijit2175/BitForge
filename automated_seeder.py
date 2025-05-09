@@ -7,8 +7,10 @@ import sys
 import time
 from register_seeder import register_seeder_to_tracker
 
+# Automated Seeder Script
 running = True
 
+# This script is designed to seed files in chunks and register with a tracker.
 def create_chunks(file_path, chunk_size, seeding_folder):
     with open(file_path, 'rb') as f:
         file_data = f.read()
@@ -31,6 +33,7 @@ def create_chunks(file_path, chunk_size, seeding_folder):
 
     return chunk_hashes
 
+# This function handles incoming peer requests for chunks.
 def handle_peer(peer_socket, peer_ip, peer_port, file_name, chunk_size, chunk_hashes, seeding_folder):
     with peer_socket:
         print(f"Connected to peer {peer_ip}:{peer_port}.")
@@ -69,6 +72,7 @@ def handle_peer(peer_socket, peer_ip, peer_port, file_name, chunk_size, chunk_ha
         else:
             print(f"Invalid request: {request}")
 
+# Signal handler to gracefully shut down the seeder
 def signal_handler(sig, frame):
     global running
     print("\nShutting down seeder gracefully...")
@@ -77,6 +81,7 @@ def signal_handler(sig, frame):
 
 signal.signal(signal.SIGINT, signal_handler)
 
+# This function starts the seeding server and listens for incoming peer requests.
 def start_seeding_server(peer_ip, peer_port, file_name, chunk_size, chunk_hashes, seeding_folder):
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server_socket:
         server_socket.bind((peer_ip, peer_port))
@@ -94,6 +99,7 @@ def start_seeding_server(peer_ip, peer_port, file_name, chunk_size, chunk_hashes
             except socket.timeout:
                 continue
 
+# This function starts the seeder, prepares the chunks, and registers with the tracker.
 def start_seeder():
     file_path = input("Enter the path of the file to seed: ")
     seeding_folder = input("Enter the path for the seeding folder: ")
@@ -160,5 +166,6 @@ def start_seeder():
     except KeyboardInterrupt:
         signal_handler(None, None)
 
+# This function is the entry point for the script.
 if __name__ == "__main__":
     start_seeder()
