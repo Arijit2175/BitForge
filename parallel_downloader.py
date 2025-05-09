@@ -8,7 +8,7 @@ from resume import generate_resume
 
 def download_file(tracker_ip, tracker_port, torrent_metadata, output_dir=".",
                   signal_progress=None, signal_complete=None):
-    file_name = torrent_metadata['file_name']
+    file_name = torrent_metadata['file_name'] 
     chunk_size = torrent_metadata['chunk_size']
     chunk_hashes = torrent_metadata['chunk_hashes']
     total_chunks = len(chunk_hashes)
@@ -26,7 +26,8 @@ def download_file(tracker_ip, tracker_port, torrent_metadata, output_dir=".",
         resume_data = generate_resume(file_name, chunk_hashes, chunk_size, output_dir)
 
     resume_lock = threading.Lock()
-
+    
+    # Function to update the resume data
     def update_resume(chunk_index):
         with resume_lock:
             resume_data[str(chunk_index)] = True
@@ -35,7 +36,8 @@ def download_file(tracker_ip, tracker_port, torrent_metadata, output_dir=".",
 
     semaphore = threading.Semaphore(5)  
     threads = [] 
-
+    
+    # Function to download a chunk
     def download_worker(chunk_index):
         if str(chunk_index) in resume_data and resume_data[str(chunk_index)]:
             print(f"Skipping chunk {chunk_index} (already downloaded and verified).")
@@ -74,7 +76,8 @@ def download_file(tracker_ip, tracker_port, torrent_metadata, output_dir=".",
                 print(f"Failed to download chunk {chunk_index} from {peer_ip}:{peer_port}")
 
         print(f"All attempts failed for chunk {chunk_index}. Moving on to the next chunk.")
-  
+    
+    # Function to download a chunk with semaphore
     def download_worker_with_semaphore(chunk_index):
         with semaphore:  
             download_worker(chunk_index)
