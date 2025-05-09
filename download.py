@@ -2,6 +2,7 @@ import socket
 import hashlib
 import os
 
+# Function to download a chunk from a peer
 def download_chunk(peer_ip, peer_port, chunk_index, chunk_size, file_name, expected_hash):
     try:
         client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
