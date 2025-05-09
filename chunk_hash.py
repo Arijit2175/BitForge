@@ -2,8 +2,10 @@ import os
 import hashlib
 import bencodepy
 
+# Chunk size in bytes
 Chunk_size = 1024 * 1024  
 
+# Function to chunk a file and create a .torrent file
 def chunk_file(file_path):
     file_size = os.path.getsize(file_path)  
     file_name = os.path.basename(file_path)  
@@ -41,5 +43,6 @@ def chunk_file(file_path):
 
     print(f"Created .torrent file: {torrent_file}")
 
+# Input the path to the file you want to chunk
 file_path = input("Enter the path to the file you want to chunk: ")
 chunk_file(file_path)
