@@ -2,6 +2,7 @@ import os
 import json
 import hashlib
 
+# Function to generate a resume file for the download process
 def generate_resume(file_name, chunk_hashes, chunk_size, output_dir="."):
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
@@ -19,7 +20,7 @@ def generate_resume(file_name, chunk_hashes, chunk_size, output_dir="."):
     print(f"Resume file created: {resume_file}")
     return resume_data 
 
-
+# Function to load the resume file and return the set of already downloaded chunk indices
 def load_resume(resume_file):
     """
     Loads a resume file and returns the set of already downloaded chunk indices.
