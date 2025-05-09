@@ -9,6 +9,7 @@ from get_peers_from_tracker import get_peers_for_chunk
 from parallel_downloader import download_file 
 from resume import generate_resume 
 
+# Function to register with the tracker
 def register_with_tracker(tracker_ip, tracker_port, file_name, ip, port, available_chunks):
     url = f"http://{tracker_ip}:{tracker_port}/register"
     data = {
@@ -27,6 +28,7 @@ def register_with_tracker(tracker_ip, tracker_port, file_name, ip, port, availab
     except Exception as e:
         print("Error during registration:", e)
 
+# Function to generate a resume file
 def generate_resume_file(torrent_metadata, output_dir="."):
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
@@ -42,6 +44,7 @@ def generate_resume_file(torrent_metadata, output_dir="."):
         json.dump(resume_data, f, indent=2)
     print(f"Resume file generated at {resume_path}")
 
+# Function to download a file from the tracker
 def client(tracker_ip, tracker_port, torrent_metadata):
     chunk_hashes = torrent_metadata['chunk_hashes']
     chunk_size = torrent_metadata['chunk_size']
@@ -82,6 +85,7 @@ def client(tracker_ip, tracker_port, torrent_metadata):
     finally:
         print("Client disconnected.")
 
+# Driver code to run the client
 if __name__ == "__main__":
     tracker_input = input("Enter the tracker address (e.g., 127.0.0.1 or http://127.0.0.1:9000): ")
 
