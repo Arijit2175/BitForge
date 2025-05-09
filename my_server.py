@@ -3,6 +3,7 @@ import os
 import json
 from read_torrent import read_torrent_file
 
+# Function to handle incoming connections and serve file chunks
 def server(peer_port, torrent_metadata):
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -71,6 +72,7 @@ def server(peer_port, torrent_metadata):
         server_socket.close()
         print("Server has stopped.")
 
+# Driver code to start the server
 if __name__ == "__main__":
     try:
         peer_port = int(input("Enter port for the server to listen on: "))
