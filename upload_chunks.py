@@ -1,6 +1,7 @@
 import socket
 import os
 
+# Function to upload chunks from a file
 def seeding_server(peer_ip, peer_port, file_name, chunk_size, chunk_hashes, output_dir="."):
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server_socket:
         server_socket.bind((peer_ip, peer_port))
