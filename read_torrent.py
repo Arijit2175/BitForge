@@ -1,6 +1,7 @@
 import json
 import os
 
+# Function to read a .torrent file and extract metadata
 def read_torrent_file(torrent_file_path):
     if not os.path.exists(torrent_file_path):
         raise FileNotFoundError(f"The file at {torrent_file_path} does not exist.")
@@ -16,6 +17,7 @@ def read_torrent_file(torrent_file_path):
 
     return metadata
 
+# Function to read a chunk of data from a file
 def read_chunk_data(file_name, chunk_index, chunk_size):
     if not os.path.exists(file_name):
         raise FileNotFoundError(f"The file {file_name} does not exist.")
@@ -24,6 +26,7 @@ def read_chunk_data(file_name, chunk_index, chunk_size):
         f.seek(chunk_index * chunk_size)
         return f.read(chunk_size)
 
+# Driver code to test the read_torrent_file function
 if __name__ == "__main__":
     torrent_file = input("Enter the path to the .torrent file: ")
     
