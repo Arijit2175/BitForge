@@ -7,6 +7,8 @@ import time
 from upload_chunks import seeding_server
 from register_seeder import register_seeder_to_tracker
 
+# CLI seeder script
+# Function to upload chunks of a file
 def upload_chunks(file_path, chunk_size, output_dir):
     """
     Splits a file into chunks and stores them in output_dir.
@@ -33,10 +35,12 @@ def upload_chunks(file_path, chunk_size, output_dir):
 
     return chunk_hashes
 
+# Function to shutdown the seeder gracefully
 def shutdown_gracefully(signal, frame):
     print("\nGracefully shutting down...")
     sys.exit(0)  
 
+# Function to start the seeder
 def start_seeding(file_path, peer_ip="127.0.0.1", peer_port=5000, chunk_size=1024*1024, output_dir="shared_chunks", tracker_ip="127.0.0.1", tracker_port=9000):
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
@@ -68,6 +72,7 @@ def start_seeding(file_path, peer_ip="127.0.0.1", peer_port=5000, chunk_size=102
     except KeyboardInterrupt:
         shutdown_gracefully(None, None)
 
+# Main function to run the seeder
 if __name__ == "__main__":
     file_path = input("Enter path to the file you want to seed: ")
     peer_port = int(input("Enter the port number to use for seeding this file: "))
