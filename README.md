@@ -2,6 +2,7 @@
 
 BitForge is a custom-built torrent-like peer-to-peer (P2P) file sharing client designed from scratch in Python. It supports downloading files in parallel from multiple peers, seeding, and a GUI interface using PyQt5.
 
+
 ## 💡 Inspiration
 
 BitForge was inspired by the inner workings of the original BitTorrent protocol. The goal was to demystify how P2P file-sharing systems operate under the hood by rebuilding the entire process—from chunked file transfer to tracker registration and multi-peer discovery—entirely in Python.
@@ -14,6 +15,7 @@ This project serves as a hands-on implementation for learning about:
 - Torrent protocol mechanics
 - GUI development with PyQt5
 
+
 ## ⚙️ Features
 
 - 📁 `.torrent` file parsing (bencode decoding)
@@ -22,6 +24,7 @@ This project serves as a hands-on implementation for learning about:
 - 🧩 Resume support using JSON
 - 💻 CLI seeding & uploading with `seeding.py` and `my_server.py`
 - 🖥️ PyQt5 GUI interface with progress bar, chunk status, theme toggle, and logo branding
+
 
 ## 🖼️ Screenshots
 
@@ -32,6 +35,19 @@ This project serves as a hands-on implementation for learning about:
 ### GUI - Light Mode
 
 ![GUI Light Mode](assets/screenshots/gui_light.png)
+
+
+## 🛠️ Tech Stack
+
+| Layer            | Technology          |
+|------------------|---------------------|
+| Programming      | Python 3.10+        |
+| GUI              | PyQt5               |
+| Networking       | `socket`, `requests`|
+| Torrent Parsing  | `bencodepy`         |
+| Parallelism      | `threading`         |
+| File Handling    | JSON, Binary I/O    |
+
 
 ## 🚀 Usage
 
@@ -59,6 +75,7 @@ python automated_seeder.py
 python gui.py
 ```
 
+
 ## 🧭 Applications
 
 - 📦 **Educational Tool** – Learn how real-world file sharing protocols like BitTorrent work.
@@ -66,6 +83,7 @@ python gui.py
 - 🔄 **Resumable Downloads** – Download large files with chunked resume support.
 - 🔍 **Experimentation Base** – Extend to add DHT, magnet links, peer banning, etc.
 - 💻 **GUI Showcases** – Demonstrate PyQt integration with threaded backend systems.
+
 
 ## 📚 References
 
