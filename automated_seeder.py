@@ -7,7 +7,7 @@ import sys
 import time
 from register_seeder import register_seeder_to_tracker
 
-# Automated Seeder Script
+# Automated Seeder Script for GUI
 running = True
 
 # This script is designed to seed files in chunks and register with a tracker.
