@@ -1,9 +1,11 @@
 import json
 from flask import Flask, request, jsonify
 
+# This is a simple tracker server that registers peers and allows chunk lookups.
 app = Flask(__name__)
 peer_chunk_map = {}
 
+# This endpoint allows peers to register themselves with the tracker.
 @app.route('/register', methods=['POST'])
 def register_peer():
     try:
@@ -36,7 +38,7 @@ def register_peer():
         print(f"❌ Error during registration: {e}")
         return jsonify({"error": "Registration failed"}), 500
 
-
+# This endpoint allows peers to look up which peers have a specific chunk.
 @app.route('/lookup', methods=['POST'])
 def lookup_chunk():
     try:
@@ -65,6 +67,6 @@ def lookup_chunk():
         print(f"❌ Error during chunk lookup: {e}")
         return jsonify({"error": "Chunk lookup failed"}), 500
 
-
+# Driver code to run the Flask app
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=9000)
