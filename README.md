@@ -67,6 +67,12 @@ python gui.py
 - 🔍 **Experimentation Base** – Extend to add DHT, magnet links, peer banning, etc.
 - 💻 **GUI Showcases** – Demonstrate PyQt integration with threaded backend systems.
 
+## 📚 References
 
+- [The BitTorrent Protocol Specification](https://www.bittorrent.org/beps/bep_0003.html)
+- [Wikipedia – BitTorrent](https://en.wikipedia.org/wiki/BitTorrent)
+- [bencodepy GitHub Repo](https://github.com/fuzeman/bencode.py) – Used for `.torrent` file decoding
+- [PyQt5 Documentation](https://doc.qt.io/qtforpython/) – For GUI implementation
+- [Python Sockets Documentation](https://docs.python.org/3/library/socket.html)
 
 
