@@ -30,11 +30,11 @@ This project serves as a hands-on implementation for learning about:
 
 ### GUI - Dark Mode
 
-![GUI Dark Mode](assets/screenshots/gui_dark.png)
+![GUI Dark Mode](assets/sc_dark.png)
 
 ### GUI - Light Mode
 
-![GUI Light Mode](assets/screenshots/gui_light.png)
+![GUI Light Mode](assets/sc_light.png)
 
 
 ## 🛠️ Tech Stack
