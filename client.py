@@ -9,6 +9,7 @@ from get_peers_from_tracker import get_peers_for_chunk
 from parallel_downloader import download_file 
 from resume import generate_resume 
 
+#CLI Client Script
 # Function to register with the tracker
 def register_with_tracker(tracker_ip, tracker_port, file_name, ip, port, available_chunks):
     url = f"http://{tracker_ip}:{tracker_port}/register"
