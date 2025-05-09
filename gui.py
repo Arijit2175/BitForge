@@ -11,12 +11,12 @@ from PyQt5.QtCore import Qt, pyqtSignal, QObject
 import bencodepy
 from parallel_downloader import download_file
 
-
+# Custom signal class to handle download progress and completion
 class DownloadSignals(QObject):
     progress = pyqtSignal(int, int)
     complete = pyqtSignal(str)
 
-
+# Custom GUI class for the torrent client
 class TorrentGUI(QWidget):
     def __init__(self):
         super().__init__()
@@ -97,6 +97,7 @@ class TorrentGUI(QWidget):
 
         self.setLayout(self.layout)
 
+# Theme toggle button to switch between light and dark modes
     def toggle_theme(self):
         self.is_dark_mode = not self.is_dark_mode
         if self.is_dark_mode:
@@ -182,6 +183,7 @@ class TorrentGUI(QWidget):
             }
         """)
 
+# Function to select a torrent file
     def select_torrent_file(self):
         file_path, _ = QFileDialog.getOpenFileName(self, "Select Torrent File", "", "Torrent Files (*.torrent)")
         if file_path:
@@ -207,6 +209,7 @@ class TorrentGUI(QWidget):
             print(f"Error parsing torrent file: {e}")
             QMessageBox.warning(self, "Error", "Failed to parse torrent file.")
 
+# Function to start the download process
     def start_download(self):
         if not self.torrent_metadata:
             QMessageBox.warning(self, "No File", "Please select a valid torrent file first.")
@@ -264,7 +267,7 @@ class TorrentGUI(QWidget):
         self.pause_btn.setEnabled(False)
         QMessageBox.information(self, "Download Complete", f"File reconstructed at:\n{file_path}")
 
-
+# Function to handle the close event
 if __name__ == "__main__":
     app = QApplication(sys.argv)
     gui = TorrentGUI()
