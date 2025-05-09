@@ -93,4 +93,6 @@ python gui.py
 - [PyQt5 Documentation](https://doc.qt.io/qtforpython/) – For GUI implementation
 - [Python Sockets Documentation](https://docs.python.org/3/library/socket.html)
 
+<br>
 
+👨‍💻 **Developed by** - @Arijit2175
