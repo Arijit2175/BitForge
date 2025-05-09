@@ -1,6 +1,7 @@
 import hashlib
 import os
 
+# Function to verify the integrity of a chunk
 def verify_chunk(chunk_path, expected_hash):
     with open(chunk_path, 'rb') as f:
         data = f.read()
@@ -13,6 +14,7 @@ def verify_chunk(chunk_path, expected_hash):
             print(f"Hash mismatch for {chunk_path}")
             return False
 
+# Function to verify the integrity of the entire file
 def verify_file(file_name, chunk_size, total_chunks, chunk_hashes):
     reconstructed_file_size = chunk_size * total_chunks  
     actual_file_size = os.path.getsize(file_name)
