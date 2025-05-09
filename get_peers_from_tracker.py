@@ -2,8 +2,10 @@ import requests
 import logging
 import time
 
+# This script is designed to request peers for a specific chunk from a tracker server.
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
+# Function to get peers for a specific chunk from the tracker
 def get_peers_for_chunk(tracker_ip, tracker_port, file_name, chunk_index, chunk_hashes, retries=3, timeout=5):
     """
     Request the list of peers for a specific chunk from the tracker.
