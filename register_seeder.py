@@ -1,6 +1,7 @@
 import requests
 import json
 
+# Function to register a seeder with the tracker
 def register_seeder_to_tracker(tracker_ip, tracker_port, file_name, peer_ip, peer_port, chunk_hashes):
     """
     Registers the seeder with the tracker, sending file info and chunk hashes.
