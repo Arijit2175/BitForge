@@ -1,5 +1,6 @@
 import requests
 
+# Function to register a seeder with the tracker
 def register_with_tracker(tracker_ip, tracker_port, file_name, ip, port, available_chunks):
     url = f"http://{tracker_ip}:{tracker_port}/register"
     data = {
